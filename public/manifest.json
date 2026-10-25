@@ -1,0 +1,31 @@
+{
+  "name": "Haramaya Trip",
+  "short_name": "Haramaya Trip",
+  "description": "Official Haramaya University Transportation Booking & Departure Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#087A55",
+  "theme_color": "#087A55",
+  "categories": ["travel", "education", "transportation"],
+  "icons": [
+    {
+      "src": "/brand/haramaya-trip-app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/haramaya-trip-app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/haramaya-trip-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+// use prisma-8
+
+enum Role {
+  @@type("pg/text@1")
+  TRAVELER = "TRAVELER"
+  STAFF    = "STAFF"
+  ADMIN    = "ADMIN"
+}
+
+enum TripStatus {
+  @@type("pg/text@1")
+  DRAFT     = "DRAFT"
+  PUBLISHED = "PUBLISHED"
+  CLOSED    = "CLOSED"
+  DEPARTED  = "DEPARTED"
+  COMPLETED = "COMPLETED"
+  CANCELLED = "CANCELLED"
+}
+
+enum BookingStatus {
+  @@type("pg/text@1")
+  PENDING_PAYMENT = "PENDING_PAYMENT"
+  PENDING_REVIEW  = "PENDING_REVIEW"
+  CONFIRMED       = "CONFIRMED"
+  REJECTED        = "REJECTED"
+  CANCELLED       = "CANCELLED"
+}
+
+enum PaymentStatus {
+  @@type("pg/text@1")
+  UNPAID   = "UNPAID"
+  SUBMITTED = "SUBMITTED"
+  APPROVED = "APPROVED"
+  REJECTED = "REJECTED"
+}
+
+enum IdentityType {
+  @@type("pg/text@1")
+  NATIONAL_ID = "NATIONAL_ID"
+  STUDENT_ID  = "STUDENT_ID"
+  PASSPORT    = "PASSPORT"
+  STAFF_ID    = "STAFF_ID"
+  OTHER       = "OTHER"
+}
+
+enum CheckInStatus {
+  @@type("pg/text@1")
+  NOT_CHECKED = "NOT_CHECKED"
+  CHECKED_IN  = "CHECKED_IN"
+  NO_SHOW     = "NO_SHOW"
+}
+
+enum DemandStatus {
+  @@type("pg/text@1")
+  OPEN     = "OPEN"
+  REVIEWED = "REVIEWED"
+  CLOSED   = "CLOSED"
+}
+
+model Account {
+  id           String            @id @onCreate(uuid(7))
+  email        String            @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  role         Role
+  isActive     Boolean           @default(true)
+  createdAt    TimestamptzString @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  sessions         Session[]
+  bookings         Booking[]         @relation("BookingAccount")
+  reviews          Booking[]         @relation("PaymentReviewer")
+  proofs           PaymentProof[]
+  passengers       Passenger[]       @relation("PassengerRecorder")
+  checkIns         Passenger[]       @relation("PassengerChecker")
+  ticketsIssued    Ticket[]          @relation("TicketIssuer")
+  demandRequests   DemandRequest[]
+  auditEvents      AuditEvent[]
+  tripsCreated     Trip[]            @relation("TripCreator")
+}
+
+model Session {
+  id        String            @id @onCreate(uuid(7))
+  accountId String
+  account   Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  tokenHash String            @unique
+  expiresAt TimestamptzString
+  createdAt TimestamptzString @default(now())
+
+  @@index([accountId])
+}
+
+model Campus {
+  id        String            @id @onCreate(uuid(7))
+  name      String
+  code      String            @unique
+  isActive  Boolean           @default(true)
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  originRoutes Route[]
+  trips        Trip[]
+}
+
+model Destination {
+  id        String            @id @onCreate(uuid(7))
+  name      String
+  code      String            @unique
+  isActive  Boolean           @default(true)
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  routes Route[]
+}
+
+model Route {
+  id              String            @id @onCreate(uuid(7))
+  name            String
+  originCampusId  String
+  originCampus    Campus            @relation(fields: [originCampusId], references: [id], onDelete: Restrict)
+  destinationId   String
+  destination     Destination       @relation(fields: [destinationId], references: [id], onDelete: Restrict)
+  isActive        Boolean           @default(true)
+  createdAt       TimestamptzString @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  trips          Trip[]
+  demandRequests DemandRequest[]
+
+  @@unique([originCampusId, destinationId])
+  @@index([originCampusId])
+  @@index([destinationId])
+}
+
+model Vehicle {
+  id           String            @id @onCreate(uuid(7))
+  name         String
+  plateNumber  String            @unique
+  seatCapacity Int
+  isActive     Boolean           @default(true)
+  createdAt    TimestamptzString @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  trips Trip[]
+
+  @@check(expression: sql`"seatCapacity" > 0`, name: "vehicle_capacity_positive")
+}
+
+model TravelEvent {
+  id          String            @id @onCreate(uuid(7))
+  name        String
+  description String?
+  startsOn    DateString
+  endsOn      DateString
+  isActive    Boolean           @default(true)
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  trips          Trip[]
+  demandRequests DemandRequest[]
+}
+
+model Trip {
+  id              String             @id @onCreate(uuid(7))
+  routeId         String
+  route           Route              @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  originCampusId  String
+  originCampus    Campus             @relation(fields: [originCampusId], references: [id], onDelete: Restrict)
+  eventId         String?
+  event           TravelEvent?       @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  vehicleId       String?
+  vehicle         Vehicle?           @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  createdById     String?
+  createdBy       Account?           @relation("TripCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  departureAt     TimestamptzString
+  arrivalAt       TimestamptzString?
+  bookingDeadline TimestamptzString?
+  farePerSeat     Int
+  seatCapacity    Int
+  seatsReserved   Int                @default(0)
+  status          TripStatus
+  notes           String?
+  createdAt       TimestamptzString  @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  bookings Booking[]
+
+  @@index([routeId])
+  @@index([status])
+  @@index([departureAt])
+  @@check(expression: sql`"seatCapacity" > 0`, name: "trip_capacity_positive")
+  @@check(expression: sql`"seatsReserved" >= 0 AND "seatsReserved" <= "seatCapacity"`, name: "trip_reserved_within_capacity")
+}
+
+model Booking {
+  id              String            @id @onCreate(uuid(7))
+  reference       String            @unique
+  accountId       String
+  account         Account           @relation("BookingAccount", fields: [accountId], references: [id], onDelete: Restrict)
+  tripId          String
+  trip            Trip              @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  partySize       Int
+  status          BookingStatus
+  paymentStatus   PaymentStatus
+  rejectionReason String?
+  reviewedById    String?
+  reviewedBy      Account?          @relation("PaymentReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  reviewedAt      TimestamptzString?
+  createdAt       TimestamptzString @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  passengers Passenger[]
+  proofs     PaymentProof[]
+  tickets    Ticket[]
+
+  @@index([accountId])
+  @@index([tripId])
+  @@index([status])
+  @@check(expression: sql`"partySize" > 0`, name: "booking_party_positive")
+}
+
+model Passenger {
+  id             String            @id @onCreate(uuid(7))
+  bookingId      String
+  booking        Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  recordedById   String
+  recordedBy     Account           @relation("PassengerRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+  fullName       String
+  phone          String?
+  identityType   IdentityType
+  identityNumber String
+  checkInStatus  CheckInStatus
+  checkedInAt    TimestamptzString?
+  checkedInById  String?
+  checkedInBy    Account?          @relation("PassengerChecker", fields: [checkedInById], references: [id], onDelete: Restrict)
+  createdAt      TimestamptzString @default(now())
+  updatedAt      temporal.updatedAtString()
+
+  ticket Ticket?
+
+  @@index([bookingId])
+  @@index([identityNumber])
+}
+
+model PaymentProof {
+  id           String            @id @onCreate(uuid(7))
+  bookingId    String
+  booking      Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   Account           @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  fileName     String
+  mimeType     String
+  storageKey   String
+  note         String?
+  createdAt    TimestamptzString @default(now())
+
+  @@index([bookingId])
+}
+
+model Ticket {
+  id           String            @id @onCreate(uuid(7))
+  bookingId    String
+  booking      Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  passengerId  String            @unique
+  passenger    Passenger         @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+  issuedById   String
+  issuedBy     Account           @relation("TicketIssuer", fields: [issuedById], references: [id], onDelete: Restrict)
+  publicCode   String            @unique
+  tokenHash    String            @unique
+  createdAt    TimestamptzString @default(now())
+
+  @@index([bookingId])
+}
+
+model DemandRequest {
+  id             String            @id @onCreate(uuid(7))
+  accountId      String
+  account        Account           @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  routeId        String
+  route          Route             @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  eventId        String?
+  event          TravelEvent?      @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  travelDate     DateString
+  passengerCount Int
+  note           String?
+  status         DemandStatus
+  createdAt      TimestamptzString @default(now())
+  updatedAt      temporal.updatedAtString()
+
+  @@index([routeId])
+  @@index([travelDate])
+  @@check(expression: sql`"passengerCount" > 0`, name: "demand_passengers_positive")
+}
+
+model AuditEvent {
+  id         String            @id @onCreate(uuid(7))
+  actorId    String?
+  actor      Account?          @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action     String
+  entityType String
+  entityId   String
+  detail     String?
+  createdAt  TimestamptzString @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

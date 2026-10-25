@@ -1,26 +1,130 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Haramaya Trip identity */
+  --brand-haramaya-green: #087A55;
+  --brand-white: #FFFFFF;
+  --brand-green: var(--brand-haramaya-green);
+  --brand-green-hover: #076B4B;
+  --brand-green-strong: #066044;
+  --brand-green-dark: #064E3B;
+  --brand-green-light: #ECFDF5;
+  --brand-green-soft: #D1FAE5;
+  --brand-green-border: #A7F3D0;
+
+  /* Black / Ink */
+  --ink-primary: #0A0A0A;
+  --ink-strong: #171717;
+  --ink-secondary: #262626;
+
+  /* White & Surface */
+  --surface-white: var(--brand-white);
+
+  /* Neutral Background & Structure */
+  --app-bg: #F7F9FC;
+  --app-bg-alt: #F4F8FC;
+  --app-border: #DCE4EC;
+  --text-secondary: #52677D;
+  --text-muted: #71859A;
+
+  /* Semantic - Blue (Pending / Information Only) */
+  --blue-primary: #2563EB;
+  --blue-strong: #1D4ED8;
+  --blue-light: #EFF6FF;
+  --blue-border: #BFDBFE;
+
+  /* Semantic - Red (Error / Rejection / Danger Only) */
+  --red-primary: #DC2626;
+  --red-dark: #B91C1C;
+  --red-light: #FEF2F2;
+  --red-border: #FECACA;
+
+  /* Semantic - Amber (Warning / Low Seats) */
+  --amber-primary: #D97706;
+  --amber-dark: #B45309;
+  --amber-light: #FFFBEB;
+  --amber-border: #FDE68A;
+
+  /* Fonts */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-white: var(--brand-white);
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-hover: var(--brand-green-hover);
+  --color-brand-green-strong: var(--brand-green-strong);
+  --color-brand-green-dark: var(--brand-green-dark);
+  --color-brand-green-light: var(--brand-green-light);
+  --color-brand-green-soft: var(--brand-green-soft);
+  --color-brand-green-border: var(--brand-green-border);
+
+  --color-ink-primary: var(--ink-primary);
+  --color-ink-strong: var(--ink-strong);
+  --color-ink-secondary: var(--ink-secondary);
+
+  --color-app-bg: var(--app-bg);
+  --color-app-bg-alt: var(--app-bg-alt);
+  --color-app-border: var(--app-border);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-blue-primary: var(--blue-primary);
+  --color-blue-strong: var(--blue-strong);
+  --color-blue-light: var(--blue-light);
+  --color-blue-border: var(--blue-border);
+
+  --color-red-primary: var(--red-primary);
+  --color-red-dark: var(--red-dark);
+  --color-red-light: var(--red-light);
+  --color-red-border: var(--red-border);
+
+  --color-amber-primary: var(--amber-primary);
+  --color-amber-dark: var(--amber-dark);
+  --color-amber-light: var(--amber-light);
+  --color-amber-border: var(--amber-border);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  background: var(--app-bg);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Tabular figures for numbers, fares, times */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Touch targets */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a[role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+  }
+}
+
+/* Clean green-led focus outline */
+:focus-visible {
+  outline: 2px solid var(--brand-green);
+  outline-offset: 2px;
 }
