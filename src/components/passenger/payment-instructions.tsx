@@ -25,14 +25,25 @@ export function PaymentInstructions({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError("File size exceeds 5MB limit");
+    if (!file.size) {
+      setError("The selected file is empty");
+      setSelectedFile(null);
+      e.currentTarget.value = "";
       return;
     }
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File size exceeds 5MB limit");
+      setSelectedFile(null);
+      e.currentTarget.value = "";
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      setError("Please select a JPG, PNG, WebP, or PDF file");
+      setError("Please select a JPG, PNG, or WebP image");
+      setSelectedFile(null);
+      e.currentTarget.value = "";
       return;
     }
 
@@ -64,6 +75,8 @@ export function PaymentInstructions({
         throw new Error(data.error || "Upload failed");
       }
 
+      setSelectedFile(null);
+      setUploading(false);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload receipt");
@@ -113,7 +126,7 @@ export function PaymentInstructions({
           <input
             id="payment-receipt"
             type="file"
-            accept="image/png,image/jpeg,image/webp,application/pdf"
+            accept="image/jpeg,image/png,image/webp"
             onChange={handleFileSelect}
             className="min-w-0 flex-1 text-xs text-[#52677D] file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#E7F0FA] file:text-[#102A43] hover:file:bg-[#D8E8F6] file:cursor-pointer cursor-pointer"
           />

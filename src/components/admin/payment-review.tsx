@@ -2,6 +2,20 @@ import { orm } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { PaymentApprovalActions } from "./payment-approval-actions";
 
+function latestProof(
+  proofs: Array<{ storageKey: string; createdAt: string | Date }> | undefined,
+) {
+  return proofs?.reduce((latest, proof) =>
+    new Date(proof.createdAt).getTime() > new Date(latest.createdAt).getTime()
+      ? proof
+      : latest,
+  );
+}
+
+function proofHref(storageKey: string) {
+  return `/api/proofs/${storageKey.split("/").map(encodeURIComponent).join("/")}`;
+}
+
 export async function PaymentReview() {
   const pendingBookings = await orm.Booking.where({
     status: "PENDING_REVIEW",
@@ -65,7 +79,7 @@ export async function PaymentReview() {
                 {pendingBookings.map((booking) => {
                   const trip = booking.trip;
                   const route = trip?.route;
-                  const proof = booking.proofs?.[booking.proofs.length - 1];
+                  const proof = latestProof(booking.proofs);
                   const totalAmount = (trip?.farePerSeat || 0) * booking.partySize;
                   const dept = trip ? new Date(trip.departureAt) : null;
 
@@ -105,7 +119,7 @@ export async function PaymentReview() {
                       <td className="px-4 py-3">
                         {proof ? (
                           <a
-                            href={`/api/proofs/${proof.storageKey}`}
+                            href={proofHref(proof.storageKey)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 font-semibold text-xs text-brand-green underline hover:text-[#066044] transition-colors"
@@ -138,7 +152,7 @@ export async function PaymentReview() {
             {pendingBookings.map((booking) => {
               const trip = booking.trip;
               const route = trip?.route;
-              const proof = booking.proofs?.[booking.proofs.length - 1];
+              const proof = latestProof(booking.proofs);
               const totalAmount = (trip?.farePerSeat || 0) * booking.partySize;
 
               return (
@@ -162,7 +176,7 @@ export async function PaymentReview() {
                   {proof && (
                     <div>
                       <a
-                        href={`/api/proofs/${proof.storageKey}`}
+                        href={proofHref(proof.storageKey)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-brand-green font-semibold underline"

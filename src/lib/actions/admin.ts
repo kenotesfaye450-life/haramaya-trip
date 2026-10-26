@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { ROLES, type Role } from "@/lib/constants";
 import { hashPassword } from "@/lib/crypto";
-import { orm } from "@/lib/db";
+import { db, orm } from "@/lib/db";
 import { AppError, formatErrorResponse } from "@/lib/errors";
 
 function readString(formData: FormData, key: string) {
@@ -330,49 +331,224 @@ export async function saveTripAction(_: unknown, formData: FormData) {
   return { ok: true };
 }
 
-export async function saveAccountAction(_: unknown, formData: FormData) {
+type AccountActionResult = { ok: true } | { error: string };
+
+function readAccountInput(formData: FormData) {
+  const fullName = readString(formData, "fullName");
+  const email = readString(formData, "email").toLowerCase();
+  const phone = readString(formData, "phone");
+  const role = readString(formData, "role");
+  const password = String(formData.get("password") ?? "");
+
+  if (fullName.length < 3 || fullName.length > 120) {
+    throw new AppError("Enter a name between 3 and 120 characters.");
+  }
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new AppError("Enter a valid email address.");
+  }
+  if (phone.length > 40) throw new AppError("Phone number must be 40 characters or fewer.");
+  if (!(ROLES as readonly string[]).includes(role)) {
+    throw new AppError("Select a valid account role.");
+  }
+  if (password.length < 8 || password.length > 256) {
+    throw new AppError("Password must be between 8 and 256 characters.");
+  }
+
+  return { fullName, email, phone, role: role as Role, password };
+}
+
+function readAccountId(formData: FormData) {
+  const id = readString(formData, "id");
+  if (!id || id.length > 128) throw new AppError("Select a valid account.");
+  return id;
+}
+
+function accountActionError(error: unknown, fallback: string): AccountActionResult {
+  if (error instanceof AppError) return { error: error.message };
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    error.code === "23505"
+  ) {
+    return { error: "An account with this email already exists." };
+  }
+  console.error("Account management operation failed.", error instanceof Error ? error.name : "Unknown error");
+  return { error: fallback };
+}
+
+async function lockAdminAccounts(tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) {
+  return tx.orm.public.Account.where((account) => account.role.eq("ADMIN"))
+    .orderBy((account) => account.id.asc())
+    .forUpdate()
+    .all();
+}
+
+async function requireCurrentAdmin(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  actorId: string
+) {
+  const actor = await tx.orm.public.Account.where({
+    id: actorId,
+    role: "ADMIN",
+    isActive: true,
+  })
+    .forUpdate()
+    .first();
+  if (!actor) throw new AppError("Your administrator access is no longer active.", 403);
+  return actor;
+}
+
+async function writeAccountAudit(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  actorId: string,
+  action: string,
+  accountId: string
+) {
+  await tx.orm.public.AuditEvent.create({
+    actorId,
+    action,
+    entityType: "Account",
+    entityId: accountId,
+  });
+}
+
+export async function createAccountAction(formData: FormData): Promise<AccountActionResult> {
   const actor = await admin();
   try {
-    const id = readString(formData, "id");
-    const fullName = readString(formData, "fullName");
-    const email = readString(formData, "email").toLowerCase();
-    const phone = readString(formData, "phone");
-    const role = readString(formData, "role");
-    const password = String(formData.get("password") ?? "");
-    if (!fullName || !email) throw new AppError("Name and email are required.");
-    if (!(ROLES as readonly string[]).includes(role)) throw new AppError("Select a valid role.");
-    if (id) {
-      await orm.Account.where({ id }).update({
-        fullName,
-        email,
-        phone: phone || null,
-        role: role as Role,
-        isActive: bool(formData, "isActive"),
-      });
-      if (password.length >= 8) {
-        await orm.Account.where({ id }).update({ passwordHash: await hashPassword(password) });
-      }
-    } else {
-      if (password.length < 8) throw new AppError("Password must be at least 8 characters.");
-      await orm.Account.create({
-        fullName,
-        email,
-        phone: phone || null,
-        role: role as Role,
+    const input = readAccountInput(formData);
+    const passwordHash = await hashPassword(input.password);
+    await db.transaction(async (tx) => {
+      await lockAdminAccounts(tx);
+      await requireCurrentAdmin(tx, actor.id);
+      const existing = await tx.orm.public.Account.where({ email: input.email }).first();
+      if (existing) throw new AppError("An account with this email already exists.");
+      const account = await tx.orm.public.Account.create({
+        fullName: input.fullName,
+        email: input.email,
+        phone: input.phone || null,
+        role: input.role,
         isActive: true,
-        passwordHash: await hashPassword(password),
+        passwordHash,
       });
+      await writeAccountAudit(tx, actor.id, "account.create", account.id);
+    });
+    revalidatePath("/admin/accounts");
+    return { ok: true };
+  } catch (error) {
+    return accountActionError(error, "Unable to create the account.");
+  }
+}
+
+export async function changeAccountRoleAction(formData: FormData): Promise<AccountActionResult> {
+  const actor = await admin();
+  let shouldLogOut = false;
+  try {
+    const id = readAccountId(formData);
+    const role = readString(formData, "role");
+    if (!(ROLES as readonly string[]).includes(role)) {
+      throw new AppError("Select a valid account role.");
     }
-    await writeAudit({
-      actorId: actor.id,
-      action: id ? "account.update" : "account.create",
-      entityType: "Account",
-      entityId: id || email,
+
+    shouldLogOut = await db.transaction(async (tx) => {
+      const administrators = await lockAdminAccounts(tx);
+      await requireCurrentAdmin(tx, actor.id);
+      const account = await tx.orm.public.Account.where({ id }).forUpdate().first();
+      if (!account) throw new AppError("Account not found.");
+
+      const nextRole = role as Role;
+      if (
+        account.role === "ADMIN" &&
+        account.isActive &&
+        nextRole !== "ADMIN" &&
+        administrators.filter((item) => item.isActive).length <= 1
+      ) {
+        throw new AppError("The last active Admin cannot be demoted.");
+      }
+
+      if (account.role !== nextRole) {
+        await tx.orm.public.Account.where({ id }).update({ role: nextRole });
+        await tx.orm.public.Session.where({ accountId: id }).delete();
+        await writeAccountAudit(tx, actor.id, "account.role_change", id);
+      }
+      return actor.id === id && account.role !== nextRole;
     });
   } catch (error) {
-    const formatted = formatErrorResponse(error);
-    return { error: formatted.error };
+    return accountActionError(error, "Unable to change the account role.");
   }
   revalidatePath("/admin/accounts");
+  if (shouldLogOut) redirect("/login");
+  return { ok: true };
+}
+
+export async function setAccountActiveAction(formData: FormData): Promise<AccountActionResult> {
+  const actor = await admin();
+  let shouldLogOut = false;
+  try {
+    const id = readAccountId(formData);
+    const activeValue = readString(formData, "active");
+    if (activeValue !== "true" && activeValue !== "false") {
+      throw new AppError("Select a valid account status.");
+    }
+    const active = activeValue === "true";
+
+    shouldLogOut = await db.transaction(async (tx) => {
+      const administrators = await lockAdminAccounts(tx);
+      await requireCurrentAdmin(tx, actor.id);
+      const account = await tx.orm.public.Account.where({ id }).forUpdate().first();
+      if (!account) throw new AppError("Account not found.");
+
+      if (
+        !active &&
+        account.role === "ADMIN" &&
+        account.isActive &&
+        administrators.filter((item) => item.isActive).length <= 1
+      ) {
+        throw new AppError("The last active Admin cannot be disabled.");
+      }
+
+      if (account.isActive !== active) {
+        await tx.orm.public.Account.where({ id }).update({ isActive: active });
+        if (!active) await tx.orm.public.Session.where({ accountId: id }).delete();
+        await writeAccountAudit(tx, actor.id, active ? "account.enable" : "account.disable", id);
+      }
+      return actor.id === id && !active && account.isActive;
+    });
+  } catch (error) {
+    return accountActionError(error, "Unable to update the account status.");
+  }
+  revalidatePath("/admin/accounts");
+  if (shouldLogOut) redirect("/login");
+  return { ok: true };
+}
+
+export async function resetAccountPasswordAction(
+  formData: FormData
+): Promise<AccountActionResult> {
+  const actor = await admin();
+  const id = readString(formData, "id");
+  try {
+    readAccountId(formData);
+    const password = String(formData.get("password") ?? "");
+    if (password.length < 8 || password.length > 256) {
+      throw new AppError("Password must be between 8 and 256 characters.");
+    }
+    const passwordHash = await hashPassword(password);
+
+    await db.transaction(async (tx) => {
+      await lockAdminAccounts(tx);
+      await requireCurrentAdmin(tx, actor.id);
+      const account = await tx.orm.public.Account.where({ id }).forUpdate().first();
+      if (!account) throw new AppError("Account not found.");
+      await tx.orm.public.Account.where({ id }).update({ passwordHash });
+      await tx.orm.public.Session.where({ accountId: id }).delete();
+      await writeAccountAudit(tx, actor.id, "account.password_reset", id);
+    });
+
+    revalidatePath("/admin/accounts");
+  } catch (error) {
+    return accountActionError(error, "Unable to reset the account password.");
+  }
+  if (actor.id === id) redirect("/login");
   return { ok: true };
 }

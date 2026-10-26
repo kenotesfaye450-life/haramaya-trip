@@ -2,19 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { requireAccount } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { ACTIVE_BOOKING_STATUSES, IDENTITY_TYPES, type IdentityType } from "@/lib/constants";
 import { randomBookingReference, randomToken, sha256 } from "@/lib/crypto";
-import { db, orm } from "@/lib/db";
+import { db } from "@/lib/db";
 import { AppError, formatErrorResponse } from "@/lib/errors";
 import { newPublicCode } from "@/lib/tickets";
 import { releaseExpiredBookings } from "@/lib/booking-expiry";
-
-const PROOF_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
-const MAX_PROOF_BYTES = 5 * 1024 * 1024;
+import { submitPaymentProof } from "@/lib/payment-proofs";
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -188,52 +184,8 @@ export async function submitPaymentProofAction(_: unknown, formData: FormData) {
     const bookingId = readString(formData, "bookingId");
     const note = readString(formData, "note");
     const file = formData.get("proof");
-    if (!(file instanceof File) || file.size === 0) {
-      throw new AppError("Attach a payment proof image or PDF.");
-    }
-    if (file.size > MAX_PROOF_BYTES) throw new AppError("Payment proof must be 5 MB or smaller.");
-    if (!PROOF_TYPES.has(file.type)) {
-      throw new AppError("Upload a JPEG, PNG, WebP, or PDF file.");
-    }
-    const booking = await orm.Booking.where({ id: bookingId }).first();
-    if (!booking) throw new AppError("Booking not found.");
-    if (booking.accountId !== account.id && account.role !== "ADMIN") {
-      throw new AppError("You cannot update this booking.");
-    }
-    if (
-      booking.status !== "PENDING_PAYMENT" &&
-      booking.status !== "REJECTED" &&
-      booking.status !== "PENDING_REVIEW"
-    ) {
-      throw new AppError("Payment proof cannot be submitted for this booking.");
-    }
-
-    const storageKey = `${booking.id}/${randomToken(12)}-${file.name.replaceAll(/[^a-zA-Z0-9._-]/g, "_")}`;
-    await mkdir(path.join(process.cwd(), "storage", "proofs", booking.id), { recursive: true });
-    await writeFile(
-      path.join(process.cwd(), "storage", "proofs", storageKey),
-      Buffer.from(await file.arrayBuffer()),
-    );
-
-    await orm.PaymentProof.create({
-      bookingId: booking.id,
-      uploadedById: account.id,
-      fileName: file.name,
-      mimeType: file.type,
-      storageKey,
-      note: note || null,
-    });
-    await orm.Booking.where({ id: booking.id }).update({
-      status: "PENDING_REVIEW",
-      paymentStatus: "SUBMITTED",
-      rejectionReason: null,
-    });
-    await writeAudit({
-      actorId: account.id,
-      action: "payment.submit",
-      entityType: "Booking",
-      entityId: booking.id,
-    });
+    if (!(file instanceof File)) throw new AppError("Attach a payment proof image.");
+    await submitPaymentProof(account, bookingId, file, note);
   } catch (error) {
     const formatted = formatErrorResponse(error);
     return { error: formatted.error };
