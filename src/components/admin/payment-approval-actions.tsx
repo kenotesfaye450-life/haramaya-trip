@@ -107,7 +107,7 @@ export function PaymentApprovalActions({
           </Button>
           <Button
             size="sm"
-            variant="secondary"
+            variant="neutral"
             onClick={() => {
               setShowRejectForm(false);
               setError(null);
@@ -129,16 +129,17 @@ export function PaymentApprovalActions({
           size="sm"
           onClick={handleApprove}
           disabled={isProcessing}
-          className="font-bold shadow-xs bg-brand-green hover:bg-[#066044] text-white"
+          aria-busy={isProcessing || undefined}
+          className="font-bold shadow-xs"
         >
           {isProcessing ? "Approving..." : "Approve Payment"}
         </Button>
         <Button
           size="sm"
-          variant="secondary"
+          variant="destructive"
           onClick={() => setShowRejectForm(true)}
           disabled={isProcessing}
-          className="text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#FECACA]"
+          aria-busy={isProcessing || undefined}
         >
           Reject
         </Button>

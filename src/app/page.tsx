@@ -5,10 +5,23 @@ import { PassengerHome } from "@/components/passenger/home";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
-  const account = await getCurrentAccount();
+interface HomeSearchParams {
+  from?: string;
+  to?: string;
+  date?: string;
+  passengers?: string;
+}
 
-  // Redirect admin/staff to their operational consoles
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<HomeSearchParams>;
+}) {
+  const [account, search] = await Promise.all([
+    getCurrentAccount(),
+    searchParams,
+  ]);
+
   if (account?.role === "ADMIN") {
     redirect("/admin");
   }
@@ -16,22 +29,24 @@ export default async function HomePage() {
     redirect("/staff");
   }
 
-  const [routes, campuses, destinations] = await Promise.all([
-    orm.Route.where({ isActive: true })
-      .include("originCampus")
-      .include("destination")
-      .orderBy((r) => r.name.asc())
-      .all(),
-    orm.Campus.where({ isActive: true }).orderBy((c) => c.name.asc()).all(),
-    orm.Destination.where({ isActive: true }).orderBy((d) => d.name.asc()).all(),
-  ]);
+  const locations = await orm.Location.where({ isActive: true })
+    .orderBy((location) => location.name.asc())
+    .all();
+
+  const requestedPassengers = Number.parseInt(search.passengers || "1", 10);
+  const initialPassengers =
+    Number.isInteger(requestedPassengers) && requestedPassengers >= 1 && requestedPassengers <= 20
+      ? String(requestedPassengers)
+      : "1";
 
   return (
     <PassengerHome
       account={account}
-      routes={routes}
-      campuses={campuses}
-      destinations={destinations}
+      locations={locations}
+      initialFrom={search.from || ""}
+      initialTo={search.to || ""}
+      initialDate={search.date || ""}
+      initialPassengers={initialPassengers}
     />
   );
 }

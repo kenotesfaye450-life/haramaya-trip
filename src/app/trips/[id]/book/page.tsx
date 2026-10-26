@@ -2,6 +2,7 @@ import { getCurrentAccount } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { orm } from "@/lib/db";
 import { BookingFlow } from "@/components/passenger/booking-flow";
+import { authPageHref } from "@/lib/return-to";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,8 @@ interface SearchParams {
   step?: string;
 }
 
+const bookingSteps = new Set(["confirm", "details", "review"]);
+
 export default async function BookTripPage({
   params,
   searchParams,
@@ -17,18 +20,31 @@ export default async function BookTripPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const account = await getCurrentAccount();
-  if (!account) {
-    redirect("/login");
-  }
-
   const { id: tripId } = await params;
   const search = await searchParams;
+  const requestedCount = Number.parseInt(search.passengers || "1", 10);
+  const passengerCount =
+    Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 60
+      ? requestedCount
+      : 1;
+  const currentStep = bookingSteps.has(search.step || "")
+    ? search.step!
+    : "confirm";
+  const returnParams = new URLSearchParams({
+    passengers: String(passengerCount),
+    step: currentStep,
+  });
+  const returnTo =
+    "/trips/" + encodeURIComponent(tripId) + "/book?" + returnParams.toString();
 
-  // Fetch trip details
+  const account = await getCurrentAccount();
+  if (!account) {
+    redirect(authPageHref("login", returnTo));
+  }
+
   const trip = await orm.Trip.where({ id: tripId, status: "PUBLISHED" })
     .include("route", (r) =>
-      r.include("originCampus").include("destination")
+      r.include("originLocation").include("destinationLocation")
     )
     .include("vehicle")
     .first();
@@ -37,13 +53,9 @@ export default async function BookTripPage({
     redirect("/trips");
   }
 
-  const passengerCount = parseInt(search.passengers || "1", 10);
-  const currentStep = search.step || "confirm";
-
-  // Check availability
   const availableSeats = trip.seatCapacity - trip.seatsReserved;
   if (availableSeats < passengerCount) {
-    redirect(`/trips?error=insufficient-seats`);
+    redirect("/trips?error=insufficient-seats");
   }
 
   return (

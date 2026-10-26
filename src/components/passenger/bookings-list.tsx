@@ -17,8 +17,8 @@ interface BookingItem {
     vehicle?: { name: string; plateNumber: string } | null;
     route?: {
       name?: string | null;
-      originCampus?: { name: string } | null;
-      destination?: { name: string } | null;
+      originLocation?: { name: string } | null;
+      destinationLocation?: { name: string } | null;
     } | null;
   } | null;
 }
@@ -28,7 +28,7 @@ export async function BookingsList({ accountId }: { accountId: string }) {
     .include("trip", (t) =>
       t
         .include("route", (r) =>
-          r.include("originCampus").include("destination")
+          r.include("originLocation").include("destinationLocation")
         )
         .include("vehicle")
     )
@@ -124,9 +124,9 @@ export async function BookingsList({ accountId }: { accountId: string }) {
             </div>
 
             <div className="text-base font-bold text-[#0A0A0A] tracking-tight flex items-center gap-2">
-              <span>{route?.originCampus?.name || "Origin"}</span>
+              <span>{route?.originLocation?.name || "Origin"}</span>
               <span className="text-brand-green">→</span>
-              <span>{route?.destination?.name || "Destination"}</span>
+              <span>{route?.destinationLocation?.name || "Destination"}</span>
             </div>
 
             <div className="text-xs text-[#66706A] font-medium flex flex-wrap items-center gap-1.5">

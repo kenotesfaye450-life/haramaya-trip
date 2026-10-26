@@ -1,6 +1,6 @@
 import { AccountForm } from "@/components/account-form";
 import { DataTable, PageHeader, Panel, StatusBadge } from "@/components/ui";
-import { requireRole } from "@/lib/auth";
+import { requireRoleAt } from "@/lib/auth";
 import { orm } from "@/lib/db";
 import { formatDateTime } from "@/lib/format";
 
@@ -11,7 +11,7 @@ export default async function AdminAccountsPage({
 }: {
   searchParams: Promise<{ editId?: string }>;
 }) {
-  await requireRole("ADMIN");
+  await requireRoleAt("/admin/accounts", "ADMIN");
   const { editId } = await searchParams;
 
   const accounts = await orm.Account.orderBy((a) => a.createdAt.desc()).limit(200).all();

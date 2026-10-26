@@ -57,12 +57,20 @@ async function runRegressionSuite() {
   assert(!!staff, "Gate Staff account exists in system");
   assert(!!admin, "Administrator account exists in system");
 
-  // Retrieve base routes
-  const routes = await orm.Route.include("originCampus").include("destination").all();
-  assert(routes.length >= 2, "Bidirectional routes exist in transport catalog");
-  const forwardRoute = routes.find(
-    (r) => r.originCampus?.name.includes("Main") || r.originCampus?.name.includes("Campus")
-  ) || routes[0];
+  // Select two independent managed locations; trip creation does not require a configured route.
+  const locations = await orm.Location.where({ isActive: true }).all();
+  const origin = locations.find((location) => location.code === "MAIN") || locations[0];
+  const destination = locations.find((location) => location.code === "FIN") || locations.find((location) => location.id !== origin?.id);
+  const testPurpose = await orm.TripPurpose.where({ code: "SPECIAL_EVENT", isActive: true }).first();
+  assert(!!origin && !!destination && origin.id !== destination.id, "Independent active locations are available");
+  assert(!!testPurpose, "Trip purpose reference data exists");
+
+  const createTestTrip = (values) => orm.Trip.create({
+    originLocationId: origin.id,
+    destinationLocationId: destination.id,
+    purposeId: testPurpose.id,
+    ...values,
+  });
 
   // =========================================================================
   // TEST SUITE 1: Multi-Vehicle FIFO Allocation (Requirements 6, 24, 25, 98, 100)
@@ -83,9 +91,7 @@ async function runRegressionSuite() {
 
   const deptFuture = new Date(Date.now() + 36 * 60 * 60 * 1000).toISOString();
 
-  const fifoTrip1 = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const fifoTrip1 = await createTestTrip({
     vehicleId: v1.id,
     seatCapacity: 3,
     seatsReserved: 0,
@@ -94,9 +100,7 @@ async function runRegressionSuite() {
     status: "PUBLISHED",
   });
 
-  const fifoTrip2 = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const fifoTrip2 = await createTestTrip({
     vehicleId: v2.id,
     seatCapacity: 3,
     seatsReserved: 0,
@@ -252,9 +256,7 @@ async function runRegressionSuite() {
   // TEST SUITE 2: Different-Fare Service Isolation (Requirements 17, 98)
   // =========================================================================
   console.log("\n--- SUITE 2: Different-Fare Service Isolation ---");
-  const tataStandardTrip = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const tataStandardTrip = await createTestTrip({
     vehicleId: v1.id,
     seatCapacity: 10,
     seatsReserved: 10, // Full
@@ -263,9 +265,7 @@ async function runRegressionSuite() {
     status: "PUBLISHED",
   });
 
-  const dolphinLuxuryTrip = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const dolphinLuxuryTrip = await createTestTrip({
     vehicleId: v2.id,
     seatCapacity: 10,
     seatsReserved: 0, // Fully available
@@ -299,9 +299,7 @@ async function runRegressionSuite() {
   // TEST SUITE 3: Controllable 10-Minute Hold Expiry & 30-Minute Payment Deadline
   // =========================================================================
   console.log("\n--- SUITE 3: Controllable 10-Min Hold Expiry & 30-Min Payment Deadline ---");
-  const holdTrip = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const holdTrip = await createTestTrip({
     vehicleId: v1.id,
     seatCapacity: 10,
     seatsReserved: 4, // 2 seats for Hold A, 2 seats for Hold B
@@ -411,9 +409,7 @@ async function runRegressionSuite() {
   // =========================================================================
   console.log("\n--- SUITE 4: 12-Hour Cancellation Cutoff Enforcement ---");
   // Sub-case 4A: Departure in 6 hours (< 12 hours) -> REJECTED
-  const nearTrip = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const nearTrip = await createTestTrip({
     vehicleId: v1.id,
     seatCapacity: 10,
     seatsReserved: 2,
@@ -452,9 +448,7 @@ async function runRegressionSuite() {
   assert(nearCancelBlocked, "Traveler cancellation within 12h of departure is strictly rejected by server");
 
   // Sub-case 4B: Departure in 36 hours (> 12 hours) -> ALLOWED, CAPACITY RELEASED, REFUND RECORDED
-  const farTrip = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const farTrip = await createTestTrip({
     vehicleId: v1.id,
     seatCapacity: 10,
     seatsReserved: 2,
@@ -503,9 +497,7 @@ async function runRegressionSuite() {
   // TEST SUITE 5: Capacity Boundary & Overselling Prevention (Requirements 42, 99)
   // =========================================================================
   console.log("\n--- SUITE 5: Capacity Boundary & All-or-Nothing Concurrency ---");
-  const boundaryTrip = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const boundaryTrip = await createTestTrip({
     vehicleId: v1.id,
     seatCapacity: 10,
     seatsReserved: 7, // Exactly 3 seats remaining
@@ -568,9 +560,7 @@ async function runRegressionSuite() {
   // TEST SUITE 6: QR Cryptographic Security & Gate Verification (Requirements 22, 50, 51, 105)
   // =========================================================================
   console.log("\n--- SUITE 6: QR Cryptographic Security & Gate Verification Matrix ---");
-  const qrTrip = await orm.Trip.create({
-    routeId: forwardRoute.id,
-    originCampusId: forwardRoute.originCampusId,
+  const qrTrip = await createTestTrip({
     vehicleId: v1.id,
     seatCapacity: 10,
     seatsReserved: 1,
@@ -810,7 +800,8 @@ async function runRegressionSuite() {
   const demandDate = "2026-11-15";
   const demand1 = await orm.DemandRequest.create({
     accountId: traveler.id,
-    routeId: forwardRoute.id,
+    originLocationId: origin.id,
+    destinationLocationId: destination.id,
     travelDate: demandDate,
     passengerCount: 4,
     status: "OPEN",
@@ -818,7 +809,8 @@ async function runRegressionSuite() {
 
   const demand2 = await orm.DemandRequest.create({
     accountId: admin.id,
-    routeId: forwardRoute.id,
+    originLocationId: origin.id,
+    destinationLocationId: destination.id,
     travelDate: demandDate,
     passengerCount: 3,
     status: "OPEN",
@@ -828,7 +820,8 @@ async function runRegressionSuite() {
 
   // Aggregation query: sum requested passenger capacity on route & date
   const allDemandsForRoute = await orm.DemandRequest.where({
-    routeId: forwardRoute.id,
+    originLocationId: origin.id,
+    destinationLocationId: destination.id,
     travelDate: demandDate,
   }).all();
 

@@ -1,6 +1,6 @@
 import { VehicleForm } from "@/components/vehicle-form";
 import { DataTable, EmptyState, PageHeader, Panel, StatusBadge } from "@/components/ui";
-import { requireRole } from "@/lib/auth";
+import { requireRoleAt } from "@/lib/auth";
 import { orm } from "@/lib/db";
 import Link from "next/link";
 
@@ -11,12 +11,12 @@ export default async function AdminVehiclesPage({
 }: {
   searchParams: Promise<{ editId?: string }>;
 }) {
-  await requireRole("ADMIN");
+  await requireRoleAt("/admin/vehicles", "ADMIN");
   const { editId } = await searchParams;
 
   const now = new Date();
   const vehicles = await orm.Vehicle.include("trips", (t) =>
-    t.include("route", (r) => r.include("originCampus").include("destination"))
+    t.include("route", (r) => r.include("originLocation").include("destinationLocation"))
   )
     .orderBy((v) => v.name.asc())
     .all();

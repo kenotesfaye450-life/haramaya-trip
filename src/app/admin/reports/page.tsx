@@ -1,5 +1,5 @@
 import { PageHeader, Panel } from "@/components/ui";
-import { requireRole } from "@/lib/auth";
+import { requireRoleAt } from "@/lib/auth";
 import { orm } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +57,7 @@ function ProgressBar({ value, tone = "green" }: { value: number; tone?: "green" 
 }
 
 export default async function AdminReportsPage() {
-  await requireRole("ADMIN");
+  await requireRoleAt("/admin/reports", "ADMIN");
 
   const now = new Date().toISOString();
   const bookingStatuses = ["CONFIRMED", "PENDING_REVIEW", "PENDING_PAYMENT", "REJECTED", "CANCELLED"] as const;
@@ -72,14 +72,16 @@ export default async function AdminReportsPage() {
     )),
     orm.Trip.where({ status: "PUBLISHED" })
       .where((trip) => trip.departureAt.gte(now))
-      .include("route", (route) => route.include("originCampus").include("destination"))
+      .include("originLocation")
+      .include("destinationLocation")
       .all(),
     orm.Booking.where({ paymentStatus: "APPROVED" }).include("trip").all(),
     orm.Booking.where({ paymentStatus: "SUBMITTED" }).include("trip").all(),
     orm.Booking.where({ status: "PENDING_PAYMENT" }).include("trip").all(),
     orm.Booking.where({ status: "CANCELLED" }).include("trip").all(),
     orm.DemandRequest.where({ status: "OPEN" })
-      .include("route", (route) => route.include("originCampus").include("destination"))
+      .include("originLocation")
+      .include("destinationLocation")
       .all(),
   ]);
 
@@ -122,8 +124,8 @@ export default async function AdminReportsPage() {
 
   const demandByRoute = new Map<string, { name: string; passengers: number }>();
   for (const request of openDemand) {
-    const key = request.routeId;
-    const routeName = request.route?.name ?? "Route";
+    const key = `${request.originLocationId}_${request.destinationLocationId}`;
+    const routeName = `${request.originLocation.name} → ${request.destinationLocation.name}`;
     const current = demandByRoute.get(key);
     demandByRoute.set(key, {
       name: routeName,

@@ -9,7 +9,7 @@ export async function ActionRequired({ accountId }: { accountId: string }) {
   })
     .include("trip", (t) =>
       t.include("route", (r) =>
-        r.include("originCampus").include("destination")
+        r.include("originLocation").include("destinationLocation")
       )
     )
     .orderBy((b) => b.createdAt.desc())
@@ -58,7 +58,7 @@ export async function ActionRequired({ accountId }: { accountId: string }) {
             </div>
             <div className="text-sm font-bold text-[#171717]">
               {route
-                ? `${route.originCampus?.name ?? "Campus"} → ${route.destination?.name ?? "Destination"}`
+                ? `${route.originLocation?.name ?? "Campus"} → ${route.destinationLocation?.name ?? "Destination"}`
                 : "Scheduled Trip"}
             </div>
             <div className="text-xs text-[#66706A]">

@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'70e00256faba85048a27cd613b16814f0cde64c19bb71d5f908dcb2f40df84f9'>;
+  StorageHashBase<'6a0a1b941ff56f62002c7fd7a2fe16ee324bc740ebde1fffa12752425b26a954'>;
 export type ExecutionHash =
-  ExecutionHashBase<'7ffee584f756c2acdd94c2325a35af59c986a69629370a088811f118ab29e39b'>;
+  ExecutionHashBase<'b51e4c87a53f0342eafc9c8757ff24f5350eecdac8111befcae61017253c2d1b'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -265,6 +265,12 @@ type FieldTypeOverrides = {
           readonly input: 'OPEN' | 'REVIEWED' | 'CLOSED';
         };
       };
+      readonly Location: {
+        readonly kind: {
+          readonly output: 'CAMPUS' | 'EXTERNAL';
+          readonly input: 'CAMPUS' | 'EXTERNAL';
+        };
+      };
       readonly Passenger: {
         readonly checkInStatus: {
           readonly output: 'NOT_CHECKED' | 'CHECKED_IN' | 'NO_SHOW';
@@ -323,6 +329,12 @@ type ColumnTypeOverrides = {
       readonly status: {
         readonly output: 'OPEN' | 'REVIEWED' | 'CLOSED';
         readonly input: 'OPEN' | 'REVIEWED' | 'CLOSED';
+      };
+    };
+    readonly Destination: {
+      readonly kind: {
+        readonly output: 'CAMPUS' | 'EXTERNAL';
+        readonly input: 'CAMPUS' | 'EXTERNAL';
       };
     };
     readonly Passenger: {
@@ -424,42 +436,43 @@ export namespace Models {
     readonly [RelationKeys]?:
       'account' | 'passengers' | 'proofs' | 'reviewedBy' | 'tickets' | 'trip';
   };
-  export type public_Campus = {
-    code: FieldOutputTypes['public']['Campus']['code'];
-    createdAt: FieldOutputTypes['public']['Campus']['createdAt'];
-    id: FieldOutputTypes['public']['Campus']['id'];
-    isActive: FieldOutputTypes['public']['Campus']['isActive'];
-    name: FieldOutputTypes['public']['Campus']['name'];
-    updatedAt: FieldOutputTypes['public']['Campus']['updatedAt'];
-    originRoutes: public_Route[];
-    trips: public_Trip[];
-    readonly [RelationKeys]?: 'originRoutes' | 'trips';
-  };
   export type public_DemandRequest = {
     accountId: FieldOutputTypes['public']['DemandRequest']['accountId'];
     createdAt: FieldOutputTypes['public']['DemandRequest']['createdAt'];
+    destinationLocationId: FieldOutputTypes['public']['DemandRequest']['destinationLocationId'];
     eventId: FieldOutputTypes['public']['DemandRequest']['eventId'];
     id: FieldOutputTypes['public']['DemandRequest']['id'];
     note: FieldOutputTypes['public']['DemandRequest']['note'];
+    originLocationId: FieldOutputTypes['public']['DemandRequest']['originLocationId'];
     passengerCount: FieldOutputTypes['public']['DemandRequest']['passengerCount'];
     routeId: FieldOutputTypes['public']['DemandRequest']['routeId'];
     status: FieldOutputTypes['public']['DemandRequest']['status'];
     travelDate: FieldOutputTypes['public']['DemandRequest']['travelDate'];
     updatedAt: FieldOutputTypes['public']['DemandRequest']['updatedAt'];
     account: public_Account;
+    destinationLocation: public_Location;
     event: public_TravelEvent | null;
-    route: public_Route;
-    readonly [RelationKeys]?: 'account' | 'event' | 'route';
+    originLocation: public_Location;
+    route: public_Route | null;
+    readonly [RelationKeys]?:
+      'account' | 'destinationLocation' | 'event' | 'originLocation' | 'route';
   };
-  export type public_Destination = {
-    code: FieldOutputTypes['public']['Destination']['code'];
-    createdAt: FieldOutputTypes['public']['Destination']['createdAt'];
-    id: FieldOutputTypes['public']['Destination']['id'];
-    isActive: FieldOutputTypes['public']['Destination']['isActive'];
-    name: FieldOutputTypes['public']['Destination']['name'];
-    updatedAt: FieldOutputTypes['public']['Destination']['updatedAt'];
-    routes: public_Route[];
-    readonly [RelationKeys]?: 'routes';
+  export type public_Location = {
+    code: FieldOutputTypes['public']['Location']['code'];
+    createdAt: FieldOutputTypes['public']['Location']['createdAt'];
+    id: FieldOutputTypes['public']['Location']['id'];
+    isActive: FieldOutputTypes['public']['Location']['isActive'];
+    kind: FieldOutputTypes['public']['Location']['kind'];
+    name: FieldOutputTypes['public']['Location']['name'];
+    updatedAt: FieldOutputTypes['public']['Location']['updatedAt'];
+    demandFrom: public_DemandRequest[];
+    demandTo: public_DemandRequest[];
+    routesFrom: public_Route[];
+    routesTo: public_Route[];
+    tripsFrom: public_Trip[];
+    tripsTo: public_Trip[];
+    readonly [RelationKeys]?:
+      'demandFrom' | 'demandTo' | 'routesFrom' | 'routesTo' | 'tripsFrom' | 'tripsTo';
   };
   export type public_Passenger = {
     bookingId: FieldOutputTypes['public']['Passenger']['bookingId'];
@@ -495,17 +508,17 @@ export namespace Models {
   };
   export type public_Route = {
     createdAt: FieldOutputTypes['public']['Route']['createdAt'];
-    destinationId: FieldOutputTypes['public']['Route']['destinationId'];
+    destinationLocationId: FieldOutputTypes['public']['Route']['destinationLocationId'];
     id: FieldOutputTypes['public']['Route']['id'];
     isActive: FieldOutputTypes['public']['Route']['isActive'];
     name: FieldOutputTypes['public']['Route']['name'];
-    originCampusId: FieldOutputTypes['public']['Route']['originCampusId'];
+    originLocationId: FieldOutputTypes['public']['Route']['originLocationId'];
     updatedAt: FieldOutputTypes['public']['Route']['updatedAt'];
     demandRequests: public_DemandRequest[];
-    destination: public_Destination;
-    originCampus: public_Campus;
+    destinationLocation: public_Location;
+    originLocation: public_Location;
     trips: public_Trip[];
-    readonly [RelationKeys]?: 'demandRequests' | 'destination' | 'originCampus' | 'trips';
+    readonly [RelationKeys]?: 'demandRequests' | 'destinationLocation' | 'originLocation' | 'trips';
   };
   export type public_Session = {
     accountId: FieldOutputTypes['public']['Session']['accountId'];
@@ -548,11 +561,13 @@ export namespace Models {
     createdAt: FieldOutputTypes['public']['Trip']['createdAt'];
     createdById: FieldOutputTypes['public']['Trip']['createdById'];
     departureAt: FieldOutputTypes['public']['Trip']['departureAt'];
+    destinationLocationId: FieldOutputTypes['public']['Trip']['destinationLocationId'];
     eventId: FieldOutputTypes['public']['Trip']['eventId'];
     farePerSeat: FieldOutputTypes['public']['Trip']['farePerSeat'];
     id: FieldOutputTypes['public']['Trip']['id'];
     notes: FieldOutputTypes['public']['Trip']['notes'];
-    originCampusId: FieldOutputTypes['public']['Trip']['originCampusId'];
+    originLocationId: FieldOutputTypes['public']['Trip']['originLocationId'];
+    purposeId: FieldOutputTypes['public']['Trip']['purposeId'];
     routeId: FieldOutputTypes['public']['Trip']['routeId'];
     seatCapacity: FieldOutputTypes['public']['Trip']['seatCapacity'];
     seatsReserved: FieldOutputTypes['public']['Trip']['seatsReserved'];
@@ -561,12 +576,32 @@ export namespace Models {
     vehicleId: FieldOutputTypes['public']['Trip']['vehicleId'];
     bookings: public_Booking[];
     createdBy: public_Account | null;
+    destinationLocation: public_Location;
     event: public_TravelEvent | null;
-    originCampus: public_Campus;
-    route: public_Route;
+    originLocation: public_Location;
+    purpose: public_TripPurpose;
+    route: public_Route | null;
     vehicle: public_Vehicle | null;
     readonly [RelationKeys]?:
-      'bookings' | 'createdBy' | 'event' | 'originCampus' | 'route' | 'vehicle';
+      | 'bookings'
+      | 'createdBy'
+      | 'destinationLocation'
+      | 'event'
+      | 'originLocation'
+      | 'purpose'
+      | 'route'
+      | 'vehicle';
+  };
+  export type public_TripPurpose = {
+    code: FieldOutputTypes['public']['TripPurpose']['code'];
+    createdAt: FieldOutputTypes['public']['TripPurpose']['createdAt'];
+    description: FieldOutputTypes['public']['TripPurpose']['description'];
+    id: FieldOutputTypes['public']['TripPurpose']['id'];
+    isActive: FieldOutputTypes['public']['TripPurpose']['isActive'];
+    name: FieldOutputTypes['public']['TripPurpose']['name'];
+    updatedAt: FieldOutputTypes['public']['TripPurpose']['updatedAt'];
+    trips: public_Trip[];
+    readonly [RelationKeys]?: 'trips';
   };
   export type public_Vehicle = {
     createdAt: FieldOutputTypes['public']['Vehicle']['createdAt'];
@@ -586,9 +621,8 @@ export declare const models: {
     Account: Models.public_Account;
     AuditEvent: Models.public_AuditEvent;
     Booking: Models.public_Booking;
-    Campus: Models.public_Campus;
     DemandRequest: Models.public_DemandRequest;
-    Destination: Models.public_Destination;
+    Location: Models.public_Location;
     Passenger: Models.public_Passenger;
     PaymentProof: Models.public_PaymentProof;
     Route: Models.public_Route;
@@ -596,6 +630,7 @@ export declare const models: {
     Ticket: Models.public_Ticket;
     TravelEvent: Models.public_TravelEvent;
     Trip: Models.public_Trip;
+    TripPurpose: Models.public_TripPurpose;
     Vehicle: Models.public_Vehicle;
   };
 };
@@ -911,55 +946,6 @@ type ContractBase = Omit<
                 },
               ];
             };
-            readonly Campus: {
-              columns: {
-                readonly code: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-                readonly createdAt: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                  readonly many: false;
-                };
-                readonly id: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-                readonly isActive: {
-                  readonly dataType: 'pg/bool';
-                  readonly codecId: 'pg/bool@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
-                  };
-                  readonly many: false;
-                };
-                readonly name: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-                readonly updatedAt: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['code'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [];
-            };
             readonly DemandRequest: {
               columns: {
                 readonly accountId: {
@@ -973,6 +959,12 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly destinationLocationId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
                   readonly many: false;
                 };
                 readonly eventId: {
@@ -993,6 +985,12 @@ type ContractBase = Omit<
                   readonly nullable: true;
                   readonly many: false;
                 };
+                readonly originLocationId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
                 readonly passengerCount: {
                   readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
@@ -1002,7 +1000,7 @@ type ContractBase = Omit<
                 readonly routeId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly status: {
@@ -1034,9 +1032,21 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'DemandRequest_destinationLocationId_idx_307b052b';
+                  readonly prefix: 'DemandRequest_destinationLocationId_idx';
+                  readonly columns: readonly ['destinationLocationId'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'DemandRequest_eventId_idx_6a266d47';
                   readonly prefix: 'DemandRequest_eventId_idx';
                   readonly columns: readonly ['eventId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'DemandRequest_originLocationId_idx_e5686e06';
+                  readonly prefix: 'DemandRequest_originLocationId_idx';
+                  readonly columns: readonly ['originLocationId'];
                   readonly unique: false;
                 },
                 {
@@ -1049,6 +1059,16 @@ type ContractBase = Omit<
                   readonly name: 'DemandRequest_travelDate_idx_6e971307';
                   readonly prefix: 'DemandRequest_travelDate_idx';
                   readonly columns: readonly ['travelDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'demand_location_date_0975cc9f';
+                  readonly prefix: 'demand_location_date';
+                  readonly columns: readonly [
+                    'originLocationId',
+                    'destinationLocationId',
+                    'travelDate',
+                  ];
                   readonly unique: false;
                 },
               ];
@@ -1074,6 +1094,30 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'Route';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'DemandRequest';
+                    readonly columns: readonly ['originLocationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Destination';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'DemandRequest';
+                    readonly columns: readonly ['destinationLocationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Destination';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -1119,6 +1163,16 @@ type ContractBase = Omit<
                   readonly default: {
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/bool@1', true>;
+                  };
+                  readonly many: false;
+                };
+                readonly kind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'EXTERNAL'>;
                   };
                   readonly many: false;
                 };
@@ -1387,7 +1441,7 @@ type ContractBase = Omit<
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
                   readonly many: false;
                 };
-                readonly destinationId: {
+                readonly destinationLocationId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
@@ -1415,7 +1469,7 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
-                readonly originCampusId: {
+                readonly originLocationId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
@@ -1430,19 +1484,19 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [
-                { readonly columns: readonly ['originCampusId', 'destinationId'] },
+                { readonly columns: readonly ['originLocationId', 'destinationLocationId'] },
               ];
               indexes: readonly [
                 {
-                  readonly name: 'Route_destinationId_idx_1646ee5c';
-                  readonly prefix: 'Route_destinationId_idx';
-                  readonly columns: readonly ['destinationId'];
+                  readonly name: 'Route_destinationLocationId_idx_307b052b';
+                  readonly prefix: 'Route_destinationLocationId_idx';
+                  readonly columns: readonly ['destinationLocationId'];
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'Route_originCampusId_idx_c7831415';
-                  readonly prefix: 'Route_originCampusId_idx';
-                  readonly columns: readonly ['originCampusId'];
+                  readonly name: 'Route_originLocationId_idx_e5686e06';
+                  readonly prefix: 'Route_originLocationId_idx';
+                  readonly columns: readonly ['originLocationId'];
                   readonly unique: false;
                 },
               ];
@@ -1451,11 +1505,11 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'Route';
-                    readonly columns: readonly ['originCampusId'];
+                    readonly columns: readonly ['originLocationId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Campus';
+                    readonly tableName: 'Destination';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -1463,7 +1517,7 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'Route';
-                    readonly columns: readonly ['destinationId'];
+                    readonly columns: readonly ['destinationLocationId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
@@ -1731,6 +1785,12 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly destinationLocationId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
                 readonly eventId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -1755,7 +1815,13 @@ type ContractBase = Omit<
                   readonly nullable: true;
                   readonly many: false;
                 };
-                readonly originCampusId: {
+                readonly originLocationId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly purposeId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
@@ -1764,7 +1830,7 @@ type ContractBase = Omit<
                 readonly routeId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly seatCapacity: {
@@ -1818,15 +1884,33 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'Trip_destinationLocationId_idx_307b052b';
+                  readonly prefix: 'Trip_destinationLocationId_idx';
+                  readonly columns: readonly ['destinationLocationId'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'Trip_eventId_idx_6a266d47';
                   readonly prefix: 'Trip_eventId_idx';
                   readonly columns: readonly ['eventId'];
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'Trip_originCampusId_idx_c7831415';
-                  readonly prefix: 'Trip_originCampusId_idx';
-                  readonly columns: readonly ['originCampusId'];
+                  readonly name: 'Trip_originLocationId_destinationLocationId_idx_3ddde4f7';
+                  readonly prefix: 'Trip_originLocationId_destinationLocationId_idx';
+                  readonly columns: readonly ['originLocationId', 'destinationLocationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Trip_originLocationId_idx_e5686e06';
+                  readonly prefix: 'Trip_originLocationId_idx';
+                  readonly columns: readonly ['originLocationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Trip_purposeId_idx_6b9d8485';
+                  readonly prefix: 'Trip_purposeId_idx';
+                  readonly columns: readonly ['purposeId'];
                   readonly unique: false;
                 },
                 {
@@ -1865,11 +1949,35 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'Trip';
-                    readonly columns: readonly ['originCampusId'];
+                    readonly columns: readonly ['originLocationId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Campus';
+                    readonly tableName: 'Destination';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Trip';
+                    readonly columns: readonly ['destinationLocationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Destination';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Trip';
+                    readonly columns: readonly ['purposeId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'TripPurpose';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -1910,6 +2018,61 @@ type ContractBase = Omit<
                   };
                 },
               ];
+            };
+            readonly TripPurpose: {
+              columns: {
+                readonly code: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly description: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly isActive: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
+                  };
+                  readonly many: false;
+                };
+                readonly name: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['code'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
             };
             readonly Vehicle: {
               columns: {
@@ -1996,6 +2159,10 @@ type ContractBase = Omit<
                 'OTHER',
               ];
             };
+            readonly LocationKind: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['CAMPUS', 'EXTERNAL'];
+            };
             readonly PaymentStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['UNPAID', 'SUBMITTED', 'APPROVED', 'REJECTED'];
@@ -2032,14 +2199,13 @@ type ContractBase = Omit<
       readonly model: 'AuditEvent';
     };
     readonly Booking: { readonly namespace: 'public' & NamespaceId; readonly model: 'Booking' };
-    readonly Campus: { readonly namespace: 'public' & NamespaceId; readonly model: 'Campus' };
     readonly DemandRequest: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'DemandRequest';
     };
     readonly Destination: {
       readonly namespace: 'public' & NamespaceId;
-      readonly model: 'Destination';
+      readonly model: 'Location';
     };
     readonly Passenger: { readonly namespace: 'public' & NamespaceId; readonly model: 'Passenger' };
     readonly PaymentProof: {
@@ -2054,6 +2220,10 @@ type ContractBase = Omit<
       readonly model: 'TravelEvent';
     };
     readonly Trip: { readonly namespace: 'public' & NamespaceId; readonly model: 'Trip' };
+    readonly TripPurpose: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'TripPurpose';
+    };
     readonly Vehicle: { readonly namespace: 'public' & NamespaceId; readonly model: 'Vehicle' };
   };
   readonly domain: {
@@ -2439,73 +2609,6 @@ type ContractBase = Omit<
               };
             };
           };
-          readonly Campus: {
-            readonly fields: {
-              readonly code: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly isActive: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
-              };
-              readonly name: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly updatedAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly originRoutes: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Route';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['originCampusId'];
-                };
-              };
-              readonly trips: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Trip' };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['originCampusId'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'Campus';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly code: { readonly column: 'code' };
-                readonly createdAt: { readonly column: 'createdAt' };
-                readonly id: { readonly column: 'id' };
-                readonly isActive: { readonly column: 'isActive' };
-                readonly name: { readonly column: 'name' };
-                readonly updatedAt: { readonly column: 'updatedAt' };
-              };
-            };
-          };
           readonly DemandRequest: {
             readonly fields: {
               readonly accountId: {
@@ -2519,6 +2622,10 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                 };
               };
+              readonly destinationLocationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly eventId: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -2531,12 +2638,16 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly originLocationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly passengerCount: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly routeId: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly status: {
@@ -2568,6 +2679,18 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
+              readonly destinationLocation: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Location';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['destinationLocationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
               readonly event: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -2580,13 +2703,25 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
+              readonly originLocation: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Location';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['originLocationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
               readonly route: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
                   readonly model: 'Route';
                 };
                 readonly cardinality: 'N:1';
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['routeId'];
                   readonly targetFields: readonly ['id'];
@@ -2599,9 +2734,11 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly accountId: { readonly column: 'accountId' };
                 readonly createdAt: { readonly column: 'createdAt' };
+                readonly destinationLocationId: { readonly column: 'destinationLocationId' };
                 readonly eventId: { readonly column: 'eventId' };
                 readonly id: { readonly column: 'id' };
                 readonly note: { readonly column: 'note' };
+                readonly originLocationId: { readonly column: 'originLocationId' };
                 readonly passengerCount: { readonly column: 'passengerCount' };
                 readonly routeId: { readonly column: 'routeId' };
                 readonly status: { readonly column: 'status' };
@@ -2610,7 +2747,7 @@ type ContractBase = Omit<
               };
             };
           };
-          readonly Destination: {
+          readonly Location: {
             readonly fields: {
               readonly code: {
                 readonly nullable: false;
@@ -2631,6 +2768,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
               };
+              readonly kind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly name: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -2644,7 +2785,29 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
-              readonly routes: {
+              readonly demandFrom: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'DemandRequest';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['originLocationId'];
+                };
+              };
+              readonly demandTo: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'DemandRequest';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['destinationLocationId'];
+                };
+              };
+              readonly routesFrom: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
                   readonly model: 'Route';
@@ -2652,7 +2815,34 @@ type ContractBase = Omit<
                 readonly cardinality: '1:N';
                 readonly on: {
                   readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['destinationId'];
+                  readonly targetFields: readonly ['originLocationId'];
+                };
+              };
+              readonly routesTo: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Route';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['destinationLocationId'];
+                };
+              };
+              readonly tripsFrom: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Trip' };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['originLocationId'];
+                };
+              };
+              readonly tripsTo: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Trip' };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['destinationLocationId'];
                 };
               };
             };
@@ -2664,6 +2854,7 @@ type ContractBase = Omit<
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly id: { readonly column: 'id' };
                 readonly isActive: { readonly column: 'isActive' };
+                readonly kind: { readonly column: 'kind' };
                 readonly name: { readonly column: 'name' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
@@ -2886,7 +3077,7 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                 };
               };
-              readonly destinationId: {
+              readonly destinationLocationId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -2902,7 +3093,7 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly originCampusId: {
+              readonly originLocationId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -2926,27 +3117,27 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['routeId'];
                 };
               };
-              readonly destination: {
+              readonly destinationLocation: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Destination';
+                  readonly model: 'Location';
                 };
                 readonly cardinality: 'N:1';
                 readonly nullable: false;
                 readonly on: {
-                  readonly localFields: readonly ['destinationId'];
+                  readonly localFields: readonly ['destinationLocationId'];
                   readonly targetFields: readonly ['id'];
                 };
               };
-              readonly originCampus: {
+              readonly originLocation: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Campus';
+                  readonly model: 'Location';
                 };
                 readonly cardinality: 'N:1';
                 readonly nullable: false;
                 readonly on: {
-                  readonly localFields: readonly ['originCampusId'];
+                  readonly localFields: readonly ['originLocationId'];
                   readonly targetFields: readonly ['id'];
                 };
               };
@@ -2964,11 +3155,11 @@ type ContractBase = Omit<
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly createdAt: { readonly column: 'createdAt' };
-                readonly destinationId: { readonly column: 'destinationId' };
+                readonly destinationLocationId: { readonly column: 'destinationLocationId' };
                 readonly id: { readonly column: 'id' };
                 readonly isActive: { readonly column: 'isActive' };
                 readonly name: { readonly column: 'name' };
-                readonly originCampusId: { readonly column: 'originCampusId' };
+                readonly originLocationId: { readonly column: 'originLocationId' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
@@ -3225,6 +3416,10 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                 };
               };
+              readonly destinationLocationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly eventId: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3241,12 +3436,16 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly originCampusId: {
+              readonly originLocationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly purposeId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly routeId: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly seatCapacity: {
@@ -3297,6 +3496,18 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
+              readonly destinationLocation: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Location';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['destinationLocationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
               readonly event: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -3309,15 +3520,27 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
-              readonly originCampus: {
+              readonly originLocation: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Campus';
+                  readonly model: 'Location';
                 };
                 readonly cardinality: 'N:1';
                 readonly nullable: false;
                 readonly on: {
-                  readonly localFields: readonly ['originCampusId'];
+                  readonly localFields: readonly ['originLocationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly purpose: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'TripPurpose';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['purposeId'];
                   readonly targetFields: readonly ['id'];
                 };
               };
@@ -3327,7 +3550,7 @@ type ContractBase = Omit<
                   readonly model: 'Route';
                 };
                 readonly cardinality: 'N:1';
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['routeId'];
                   readonly targetFields: readonly ['id'];
@@ -3355,17 +3578,80 @@ type ContractBase = Omit<
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly createdById: { readonly column: 'createdById' };
                 readonly departureAt: { readonly column: 'departureAt' };
+                readonly destinationLocationId: { readonly column: 'destinationLocationId' };
                 readonly eventId: { readonly column: 'eventId' };
                 readonly farePerSeat: { readonly column: 'farePerSeat' };
                 readonly id: { readonly column: 'id' };
                 readonly notes: { readonly column: 'notes' };
-                readonly originCampusId: { readonly column: 'originCampusId' };
+                readonly originLocationId: { readonly column: 'originLocationId' };
+                readonly purposeId: { readonly column: 'purposeId' };
                 readonly routeId: { readonly column: 'routeId' };
                 readonly seatCapacity: { readonly column: 'seatCapacity' };
                 readonly seatsReserved: { readonly column: 'seatsReserved' };
                 readonly status: { readonly column: 'status' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly vehicleId: { readonly column: 'vehicleId' };
+              };
+            };
+          };
+          readonly TripPurpose: {
+            readonly fields: {
+              readonly code: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly description: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly isActive: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly name: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly trips: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Trip' };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['purposeId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'TripPurpose';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly code: { readonly column: 'code' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly description: { readonly column: 'description' };
+                readonly id: { readonly column: 'id' };
+                readonly isActive: { readonly column: 'isActive' };
+                readonly name: { readonly column: 'name' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
           };
@@ -3468,6 +3754,13 @@ type ContractBase = Omit<
               { readonly name: 'OTHER'; readonly value: 'OTHER' },
             ];
           };
+          readonly LocationKind: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CAMPUS'; readonly value: 'CAMPUS' },
+              { readonly name: 'EXTERNAL'; readonly value: 'EXTERNAL' },
+            ];
+          };
           readonly PaymentStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -3521,6 +3814,10 @@ type ContractBase = Omit<
             { readonly name: 'PASSPORT'; readonly value: 'PASSPORT' },
             { readonly name: 'STAFF_ID'; readonly value: 'STAFF_ID' },
             { readonly name: 'OTHER'; readonly value: 'OTHER' },
+          ];
+          readonly LocationKind: readonly [
+            { readonly name: 'CAMPUS'; readonly value: 'CAMPUS' },
+            { readonly name: 'EXTERNAL'; readonly value: 'EXTERNAL' },
           ];
           readonly PaymentStatus: readonly [
             { readonly name: 'UNPAID'; readonly value: 'UNPAID' },
@@ -3615,23 +3912,6 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'timestamptzStringNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'Booking';
-            readonly field: 'updatedAt';
-            readonly namespace: 'public';
-          };
-        },
-        {
-          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
-          readonly ref: {
-            readonly entry: 'Campus';
-            readonly field: 'id';
-            readonly namespace: 'public';
-          };
-        },
-        {
-          readonly onCreate: { readonly id: 'timestamptzStringNow'; readonly kind: 'generator' };
-          readonly onUpdate: { readonly id: 'timestamptzStringNow'; readonly kind: 'generator' };
-          readonly ref: {
-            readonly entry: 'Campus';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };
@@ -3758,6 +4038,23 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'timestamptzStringNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'Trip';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TripPurpose';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'timestamptzStringNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'timestamptzStringNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TripPurpose';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };

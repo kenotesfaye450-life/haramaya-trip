@@ -11,39 +11,26 @@ export default async function DemandPage({
 }: {
   searchParams?: Promise<{ from?: string; to?: string; date?: string; passengers?: string }>;
 }) {
-  const account = await requireAccount();
+  const account = await requireAccount("/demand");
   const params = searchParams ? await searchParams : {};
 
-  const [routes, events, userDemands] = await Promise.all([
-    orm.Route.where({ isActive: true })
-      .include("originCampus")
-      .include("destination")
-      .all(),
+  const [locations, events, userDemands] = await Promise.all([
+    orm.Location.where({ isActive: true }).orderBy((location) => location.name.asc()).all(),
     orm.TravelEvent.where({ isActive: true }).all(),
     orm.DemandRequest.where({ accountId: account.id })
-      .include("route", (r) => r.include("originCampus").include("destination"))
+      .include("originLocation")
+      .include("destinationLocation")
       .include("event")
       .orderBy((d) => d.createdAt.desc())
       .all(),
   ]);
 
-  // Match initial route from search parameters if provided
-  const matchedRoute = routes.find((r) => {
-    const fromMatch =
-      r.originCampusId === params.from ||
-      r.originCampus?.code?.toLowerCase() === params.from?.toLowerCase();
-    const toMatch =
-      r.destinationId === params.to ||
-      r.destination?.code?.toLowerCase() === params.to?.toLowerCase();
-    return fromMatch && toMatch;
-  });
-
-  const formattedRoutes = routes.map((r) => ({
-    id: r.id,
-    name: r.name,
-    originCampusName: r.originCampus.name,
-    destinationName: r.destination.name,
-  }));
+  const matchedFrom = locations.find((location) =>
+    location.id === params.from || location.code.toLowerCase() === params.from?.toLowerCase(),
+  );
+  const matchedTo = locations.find((location) =>
+    location.id === params.to || location.code.toLowerCase() === params.to?.toLowerCase(),
+  );
 
   const formattedEvents = events.map((e) => ({
     id: e.id,
@@ -67,9 +54,10 @@ export default async function DemandPage({
               When enough students or staff request a route on a specific date, administrators schedule official trips with appropriate vehicle capacity.
             </p>
             <DemandForm
-              routes={formattedRoutes}
+              locations={locations}
               events={formattedEvents}
-              initialRouteId={matchedRoute?.id}
+              initialFromLocationId={matchedFrom?.id}
+              initialToLocationId={matchedTo?.id}
               initialDate={params.date}
               initialPassengers={params.passengers ? parseInt(params.passengers, 10) : 1}
             />
@@ -86,13 +74,12 @@ export default async function DemandPage({
               body="Submit a request using the form on the left if you don't find a suitable published trip."
             />
           ) : (
-            <DataTable headers={["Route", "Travel Date", "Passengers", "Status", "Submitted"]}>
+            <DataTable headers={["From → Destination", "Travel Date", "Passengers", "Status", "Submitted"]}>
               {userDemands.map((demand) => (
                 <tr key={demand.id}>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-zinc-950">{demand.route?.name ?? "Route"}</p>
-                    <p className="text-xs text-zinc-500">
-                      {demand.route?.originCampus?.name} → {demand.route?.destination?.name}
+                    <p className="font-medium text-zinc-950">
+                      {demand.originLocation.name} → {demand.destinationLocation.name}
                     </p>
                     {demand.event ? (
                       <p className="text-[11px] text-zinc-400 mt-0.5">{demand.event.name}</p>

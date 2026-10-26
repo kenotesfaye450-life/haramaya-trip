@@ -95,7 +95,7 @@ export function TicketVerification({
         </div>
 
         <div className="pt-2">
-          <Button onClick={onClose} variant="secondary" fullWidth size="large" className="font-semibold">
+          <Button onClick={onClose} variant="neutral" fullWidth size="large" className="font-semibold">
             ← Scan Another Ticket
           </Button>
         </div>
@@ -148,12 +148,9 @@ export function TicketVerification({
           </span>
           <Badge variant="success">Confirmed Reservation</Badge>
         </div>
-        <button
-          onClick={onClose}
-          className="text-xs text-[#66706A] hover:text-[#0A0A0A] font-medium"
-        >
+        <Button variant="neutral" size="sm" onClick={onClose}>
           ✕ Close
-        </button>
+        </Button>
       </div>
 
       {/* Booking Overview Card */}
@@ -259,6 +256,7 @@ export function TicketVerification({
                         <Button
                           size="sm"
                           disabled={!isPhysicallyVerified || isProcessing}
+                          aria-busy={isProcessing || undefined}
                           onClick={() => handlePassengerCheckIn(p.id)}
                           className="w-full sm:w-auto font-bold shadow-xs text-xs"
                         >
@@ -282,7 +280,7 @@ export function TicketVerification({
 
       {/* Done & Scan Next Action */}
       <div className="pt-2 flex items-center justify-between border-t border-[#ECFDF5]">
-        <Button variant="secondary" size="default" onClick={onClose} className="font-semibold text-xs">
+        <Button variant="neutral" size="default" onClick={onClose} className="font-semibold text-xs">
           ← Close & Scan Next Ticket
         </Button>
         <span className="text-xs text-[#66706A] font-mono">

@@ -10,7 +10,7 @@ export async function UpcomingTrips({ accountId }: { accountId: string }) {
   })
     .include("trip", (t) =>
       t.include("route", (r) =>
-        r.include("originCampus").include("destination")
+        r.include("originLocation").include("destinationLocation")
       )
     )
     .include("passengers")
@@ -62,9 +62,9 @@ export async function UpcomingTrips({ accountId }: { accountId: string }) {
 
             {/* Route Motif */}
             <div className="text-base font-bold text-[#171717] flex items-center gap-2">
-              <span>{route?.originCampus?.name ?? "Main Campus"}</span>
+              <span>{route?.originLocation?.name ?? "Main Campus"}</span>
               <span className="text-brand-green font-normal">──→</span>
-              <span>{route?.destination?.name ?? "Destination"}</span>
+              <span>{route?.destinationLocation?.name ?? "Destination"}</span>
             </div>
 
             <div className="flex items-center gap-3 text-xs text-[#66706A]">

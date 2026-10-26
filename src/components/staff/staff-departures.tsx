@@ -13,7 +13,7 @@ export async function StaffDepartures() {
     status: "PUBLISHED",
   })
     .include("route", (r) =>
-      r.include("originCampus").include("destination")
+      r.include("originLocation").include("destinationLocation")
     )
     .include("vehicle")
     .include("bookings", (b) => b.include("passengers"))
@@ -103,8 +103,8 @@ export async function StaffDepartures() {
             const totalPassengers = trip.seatsReserved || allPassengers.length || 0;
             const capacity = trip.seatCapacity;
 
-            const originName = trip.route?.originCampus?.name || "Origin";
-            const destName = trip.route?.destination?.name || "Destination";
+            const originName = trip.route?.originLocation?.name || "Origin";
+            const destName = trip.route?.destinationLocation?.name || "Destination";
 
             return (
               <div

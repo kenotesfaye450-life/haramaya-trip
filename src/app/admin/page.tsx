@@ -1,5 +1,6 @@
 import { getCurrentAccount } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { authPageHref } from "@/lib/return-to";
 import { orm } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +10,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   const account = await getCurrentAccount();
-  if (!account || account.role !== "ADMIN") {
-    redirect("/");
-  }
+  if (!account) redirect(authPageHref("login", "/admin"));
+  if (account.role !== "ADMIN") redirect("/");
 
   const now = new Date();
   // Fetch a small working set for the dashboard and exact aggregate counts.
@@ -20,7 +20,7 @@ export default async function AdminDashboard() {
       .include("account")
       .include("trip", (t) =>
         t.include("route", (r) =>
-          r.include("originCampus").include("destination")
+          r.include("originLocation").include("destinationLocation")
         )
       )
       .orderBy((b) => b.createdAt.asc())
@@ -28,7 +28,7 @@ export default async function AdminDashboard() {
       .all(),
     orm.Booking.where({ status: "PENDING_REVIEW" }).aggregate((a) => ({ count: a.count() })),
     orm.Trip.include("route", (r) =>
-      r.include("originCampus").include("destination")
+      r.include("originLocation").include("destinationLocation")
     )
       .include("vehicle")
       .where((trip) => trip.departureAt.gte(now.toISOString()))
@@ -147,9 +147,9 @@ export default async function AdminDashboard() {
                         {b.account?.fullName || "Student"}
                       </td>
                       <td className="px-4 py-3 text-[#374151]">
-                        {b.trip?.route?.originCampus?.name || "Campus"}{" "}
+                        {b.trip?.route?.originLocation?.name || "Campus"}{" "}
                         <span className="text-brand-green">→</span>{" "}
-                        {b.trip?.route?.destination?.name || "Destination"}
+                        {b.trip?.route?.destinationLocation?.name || "Destination"}
                       </td>
                       <td className="px-4 py-3 text-[#66706A] font-mono">
                         {b.partySize}
@@ -158,12 +158,9 @@ export default async function AdminDashboard() {
                         ETB {(b.trip?.farePerSeat || 0) * b.partySize}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link
-                          href="/admin/payments"
-                          className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-brand-green text-white hover:bg-[#066044] transition-colors shadow-xs"
-                        >
-                          Review
-                        </Link>
+                        <Button size="sm" asChild>
+                          <Link href="/admin/payments">Review</Link>
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -219,9 +216,9 @@ export default async function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3 font-semibold text-[#171717]">
-                        {t.route?.originCampus?.name || "Campus"}{" "}
+                        {t.route?.originLocation?.name || "Campus"}{" "}
                         <span className="text-brand-green">→</span>{" "}
-                        {t.route?.destination?.name || "Destination"}
+                        {t.route?.destinationLocation?.name || "Destination"}
                       </td>
                       <td className="px-4 py-3 text-[#66706A] font-mono">
                         {t.vehicle?.plateNumber || "Unassigned"}

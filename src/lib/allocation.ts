@@ -55,9 +55,8 @@ export async function calculateTripFIFOAllocation(
   sisterTripIds: string[] = []
 ): Promise<TripAllocationSummary> {
   const trip = await orm.Trip.where({ id: tripId })
-    .include("route", (r) =>
-      r.include("originCampus").include("destination")
-    )
+    .include("originLocation")
+    .include("destinationLocation")
     .include("vehicle")
     .include("bookings", (b) =>
       b.include("passengers")
@@ -79,9 +78,7 @@ export async function calculateTripFIFOAllocation(
     month: "short",
     day: "numeric",
   });
-  const routeTitle = trip.route
-    ? `${trip.route.originCampus?.name} → ${trip.route.destination?.name}`
-    : "Scheduled Route";
+  const routeTitle = `${trip.originLocation.name} → ${trip.destinationLocation.name}`;
 
   // Gather all eligible physical vehicles for this departure/service
   const vehicleGroups: AllocatedVehicleGroup[] = [];

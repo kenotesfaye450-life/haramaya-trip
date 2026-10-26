@@ -55,9 +55,9 @@ export function ConfirmPassengers({
           Trip Selected
         </div>
         <div className="text-xl md:text-2xl font-extrabold tracking-tight text-[#0A0A0A] flex items-center gap-2">
-          <span>{trip.route?.originCampus?.name || "Campus"}</span>
+          <span>{trip.route?.originLocation?.name || "Campus"}</span>
           <span className="text-brand-green font-normal">──→</span>
-          <span>{trip.route?.destination?.name || "Destination"}</span>
+          <span>{trip.route?.destinationLocation?.name || "Destination"}</span>
         </div>
         <div className="flex items-center gap-2 text-xs text-[#66706A] font-medium pt-0.5">
           <span className="font-mono font-bold text-[#171717] tabular-nums">{timeStr}</span>
@@ -117,7 +117,7 @@ export function ConfirmPassengers({
         <div className="flex items-center gap-3 pt-2">
           <Button
             type="button"
-            variant="secondary"
+            variant="neutral"
             onClick={onBack}
             className="flex-1"
           >

@@ -23,9 +23,9 @@ export async function TripResults({
   await releaseExpiredBookings();
 
   const trips = await orm.Trip.where({ status: "PUBLISHED" })
-    .include("route", (r) =>
-      r.include("originCampus").include("destination")
-    )
+    .include("originLocation")
+    .include("destinationLocation")
+    .include("purpose")
     .include("vehicle")
     .orderBy((t) => t.departureAt.asc())
     .all();
@@ -42,18 +42,24 @@ export async function TripResults({
       })
     : trips;
 
+  const returnSearch = new URLSearchParams();
+  if (from) returnSearch.set("from", from);
+  if (to) returnSearch.set("to", to);
+  if (date) returnSearch.set("date", date);
+  if (passengers > 1) returnSearch.set("passengers", String(passengers));
+  const homeSearchHref = returnSearch.size
+    ? "/?" + returnSearch.toString()
+    : "/";
   const matchingTrips = filteredTrips.filter((trip) => {
     if (from) {
-      const matchFromId = trip.route?.originCampus?.id === from;
-      const matchFromCode =
-        trip.route?.originCampus?.code?.toLowerCase() === from.toLowerCase();
+      const matchFromId = trip.originLocation?.id === from;
+      const matchFromCode = trip.originLocation?.code?.toLowerCase() === from.toLowerCase();
       if (!matchFromId && !matchFromCode) return false;
     }
 
     if (to) {
-      const matchToId = trip.route?.destination?.id === to;
-      const matchToCode =
-        trip.route?.destination?.code?.toLowerCase() === to.toLowerCase();
+      const matchToId = trip.destinationLocation?.id === to;
+      const matchToCode = trip.destinationLocation?.code?.toLowerCase() === to.toLowerCase();
       if (!matchToId && !matchToCode) return false;
     }
 
@@ -61,14 +67,14 @@ export async function TripResults({
   });
 
   // Resolve labels for search header
-  const matchedRoute = matchingTrips[0]?.route;
-  let fromLabel = matchedRoute?.originCampus?.name;
-  let toLabel = matchedRoute?.destination?.name;
+  const firstTrip = matchingTrips[0];
+  let fromLabel = firstTrip?.originLocation?.name;
+  let toLabel = firstTrip?.destinationLocation?.name;
 
   if (!fromLabel && from) {
     const originEntity =
-      (await orm.Campus.where({ id: from }).first()) ||
-      (await orm.Campus.where({ code: from }).first());
+      (await orm.Location.where({ id: from }).first()) ||
+      (await orm.Location.where({ code: from }).first());
     fromLabel = originEntity?.name || "Selected Location";
   } else if (!fromLabel) {
     fromLabel = "All Locations";
@@ -76,8 +82,8 @@ export async function TripResults({
 
   if (!toLabel && to) {
     const destEntity =
-      (await orm.Destination.where({ id: to }).first()) ||
-      (await orm.Destination.where({ code: to }).first());
+      (await orm.Location.where({ id: to }).first()) ||
+      (await orm.Location.where({ code: to }).first());
     toLabel = destEntity?.name || "Selected Destination";
   } else if (!toLabel) {
     toLabel = "All Destinations";
@@ -120,7 +126,7 @@ export async function TripResults({
         </div>
 
         <Button variant="secondary" size="sm" asChild>
-          <Link href="/">Modify Search</Link>
+          <Link href={homeSearchHref}>Modify Search</Link>
         </Button>
       </div>
 
@@ -143,7 +149,7 @@ export async function TripResults({
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Button variant="secondary" size="sm" asChild>
-              <Link href="/">Change Date or Route</Link>
+              <Link href={homeSearchHref}>Change Date or Route</Link>
             </Button>
             <Button size="sm" asChild>
               <Link
@@ -175,8 +181,8 @@ export async function TripResults({
               day: "numeric",
             });
 
-            const originName = trip.route?.originCampus?.name || "Origin";
-            const destName = trip.route?.destination?.name || "Destination";
+            const originName = trip.originLocation?.name || "Origin";
+            const destName = trip.destinationLocation?.name || "Destination";
             const bookingUrl = isAuthenticated
               ? `/trips/${trip.id}/book?passengers=${passengers}`
               : `/login?next=${encodeURIComponent(
@@ -208,6 +214,7 @@ export async function TripResults({
                       <span className="w-2 h-2 rounded-full border border-brand-green bg-white" />
                       <span>{destName}</span>
                     </div>
+                    <div className="text-xs text-[#66706A]">{trip.purpose?.name}</div>
 
                     <div className="flex flex-wrap items-center gap-2.5 text-xs">
                       {availableSeats <= 0 ? (

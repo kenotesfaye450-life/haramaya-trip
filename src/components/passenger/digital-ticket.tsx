@@ -16,8 +16,8 @@ interface Booking {
     id: string;
     departureAt: Date | string;
     route?: {
-      originCampus?: { name: string } | null;
-      destination?: { name: string } | null;
+      originLocation?: { name: string } | null;
+      destinationLocation?: { name: string } | null;
     } | null;
     vehicle?: {
       name: string;
@@ -57,7 +57,7 @@ export function DigitalTicket({ booking, ticketQrValues }: DigitalTicketProps) {
   const handleShare = async () => {
     const shareData = {
       title: `HU Transport Pass - ${booking.reference}`,
-      text: `Boarding Pass for ${currentPassenger?.fullName || "Passenger"} on ${route?.originCampus?.name} → ${route?.destination?.name}. Reference: ${booking.reference}`,
+      text: `Boarding Pass for ${currentPassenger?.fullName || "Passenger"} on ${route?.originLocation?.name} → ${route?.destinationLocation?.name}. Reference: ${booking.reference}`,
       url: typeof window !== "undefined" ? window.location.href : "",
     };
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -100,7 +100,7 @@ export function DigitalTicket({ booking, ticketQrValues }: DigitalTicketProps) {
     <div className="max-w-md mx-auto space-y-4">
       {/* Top action bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
-        <Button variant="secondary" size="sm" asChild>
+        <Button variant="neutral" size="sm" asChild>
           <Link href={`/bookings/${booking.id}`} className="inline-flex items-center gap-1.5 text-xs">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -205,7 +205,7 @@ export function DigitalTicket({ booking, ticketQrValues }: DigitalTicketProps) {
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1">
                 <div className="text-lg md:text-xl font-black text-[#0A0A0A] tracking-tight leading-tight">
-                  {route?.originCampus?.name || "Main Campus"}
+                  {route?.originLocation?.name || "Main Campus"}
                 </div>
               </div>
               <div className="flex items-center gap-1 text-brand-green flex-shrink-0 px-2">
@@ -217,7 +217,7 @@ export function DigitalTicket({ booking, ticketQrValues }: DigitalTicketProps) {
               </div>
               <div className="flex-1 text-right">
                 <div className="text-lg md:text-xl font-black text-[#0A0A0A] tracking-tight leading-tight">
-                  {route?.destination?.name || "Destination"}
+                  {route?.destinationLocation?.name || "Destination"}
                 </div>
               </div>
             </div>
@@ -254,7 +254,7 @@ export function DigitalTicket({ booking, ticketQrValues }: DigitalTicketProps) {
             <div className="flex justify-between items-baseline border-t border-[#E3E8E5] pt-2">
               <span className="text-[#66706A] uppercase font-semibold text-[11px]">Boarding Point</span>
               <span className="text-[#171717] font-semibold">
-                {route?.originCampus?.name || "Origin Location"} Gate
+                {route?.originLocation?.name || "Origin Location"} Gate
               </span>
             </div>
             <div className="flex justify-between items-baseline border-t border-[#E3E8E5] pt-2">

@@ -54,7 +54,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </Button>
               <Button
                 onClick={() => window.history.back()}
-                variant="secondary"
+                variant="neutral"
                 className="w-full"
               >
                 Go Back
@@ -101,7 +101,7 @@ export function ErrorMessage({
       </Alert>
       
       {onRetry && (
-        <Button onClick={onRetry} variant="secondary" className="w-full">
+        <Button onClick={onRetry} variant="primary" className="w-full">
           Try Again
         </Button>
       )}

@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
           b
             .include("trip", (t) =>
               t
-                .include("route", (r) => r.include("originCampus").include("destination"))
+                .include("route", (r) => r.include("originLocation").include("destinationLocation"))
                 .include("vehicle"),
             )
             .include("passengers"),
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       booking = await orm.Booking.where({ reference: bookingReference })
         .include("trip", (t) =>
           t
-            .include("route", (r) => r.include("originCampus").include("destination"))
+            .include("route", (r) => r.include("originLocation").include("destinationLocation"))
             .include("vehicle"),
         )
         .include("passengers")
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       const allBookings = await orm.Booking.include("trip", (t) =>
         t
           .include("route", (r) =>
-            r.include("originCampus").include("destination")
+            r.include("originLocation").include("destinationLocation")
           )
           .include("vehicle")
       )
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
             .include("trip", (t) =>
               t
                 .include("route", (r) =>
-                  r.include("originCampus").include("destination")
+                  r.include("originLocation").include("destinationLocation")
                 )
                 .include("vehicle")
             )
@@ -157,8 +157,8 @@ export async function POST(request: NextRequest) {
     if (booking.tripId !== tripId) {
       const bookedRouteName =
         booking.trip?.route?.name ||
-        `${booking.trip?.route?.originCampus?.name || "Campus"} → ${
-          booking.trip?.route?.destination?.name || "Destination"
+        `${booking.trip?.route?.originLocation?.name || "Campus"} → ${
+          booking.trip?.route?.destinationLocation?.name || "Destination"
         }`;
       const bookedTimeStr = booking.trip
         ? new Date(booking.trip.departureAt).toLocaleTimeString("en-US", {
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
         reference: booking.reference,
         partySize: booking.partySize,
         route: booking.trip?.route
-          ? `${booking.trip.route.originCampus?.name} → ${booking.trip.route.destination?.name}`
+          ? `${booking.trip.route.originLocation?.name} → ${booking.trip.route.destinationLocation?.name}`
           : "Scheduled Route",
         departureTime: tripDeparture
           ? tripDeparture.toLocaleTimeString("en-US", {

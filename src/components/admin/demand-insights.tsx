@@ -9,9 +9,8 @@ export async function DemandInsights() {
   const allTrips = await orm.Trip.where({
     status: "PUBLISHED",
   })
-    .include("route", (r) =>
-      r.include("originCampus").include("destination")
-    )
+    .include("originLocation")
+    .include("destinationLocation")
     .orderBy((t) => t.departureAt.asc())
     .all();
 
@@ -26,7 +25,7 @@ export async function DemandInsights() {
 
   // Group by route
   const routeStats = trips.reduce((acc, trip) => {
-    const routeKey = `${trip.route?.originCampus?.name || "Campus"} → ${trip.route?.destination?.name || "Destination"}`;
+    const routeKey = `${trip.originLocation.name} → ${trip.destinationLocation.name}`;
     if (!acc[routeKey]) {
       acc[routeKey] = {
         route: routeKey,

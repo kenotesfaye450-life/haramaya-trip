@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Button as ActionButton, type ButtonVariant } from "@/components/ui/button";
 import { classNames } from "@/lib/format";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
@@ -35,33 +37,22 @@ export function Button({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   href?: string;
-  variant?: "primary" | "secondary" | "danger" | "success";
+  variant?: ButtonVariant;
 }) {
-  const styles = {
-    primary: "bg-brand-green text-white hover:bg-[#066044] shadow-xs",
-    secondary: "border border-[#E3E8E5] bg-white text-[#0A0A0A] hover:bg-[#F3F6F4] hover:border-[#D1D5DB]",
-    danger: "bg-[#DC2626] text-white hover:bg-[#B91C1C] shadow-xs",
-    success: "bg-brand-green text-white hover:bg-[#066044] shadow-xs",
-  }[variant];
-  const className = classNames(
-    "inline-flex h-9 items-center justify-center px-3.5 text-xs font-semibold rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 select-none",
-    styles,
-    props.className,
-  );
   if (href) {
     return (
-      <a href={href} className={className}>
-        {children}
-      </a>
+      <ActionButton variant={variant} size="default" asChild {...props}>
+        <Link href={href}>{children}</Link>
+      </ActionButton>
     );
   }
+
   return (
-    <button type={type} {...props} className={className}>
+    <ActionButton type={type} variant={variant} size="default" {...props}>
       {children}
-    </button>
+    </ActionButton>
   );
 }
-
 export function Field({
   label,
   name,

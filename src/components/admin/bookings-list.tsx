@@ -1,5 +1,6 @@
 import { orm } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 interface BookingRecord {
@@ -20,8 +21,8 @@ interface BookingRecord {
     vehicle?: { name: string; plateNumber: string } | null;
     route?: {
       name?: string | null;
-      originCampus?: { name: string } | null;
-      destination?: { name: string } | null;
+      originLocation?: { name: string } | null;
+      destinationLocation?: { name: string } | null;
     } | null;
   } | null;
 }
@@ -31,7 +32,7 @@ export async function BookingsList() {
     .include("trip", (t) =>
       t
         .include("route", (r) =>
-          r.include("originCampus").include("destination")
+          r.include("originLocation").include("destinationLocation")
         )
         .include("vehicle")
     )
@@ -65,8 +66,8 @@ export async function BookingsList() {
 
   for (const b of bookings) {
     const trip = b.trip;
-    const originName = trip?.route?.originCampus?.name || "Unassigned Origin";
-    const destName = trip?.route?.destination?.name || "Unassigned Destination";
+    const originName = trip?.route?.originLocation?.name || "Unassigned Origin";
+    const destName = trip?.route?.destinationLocation?.name || "Unassigned Destination";
     const routeKey = `${originName} → ${destName}`;
 
     if (!routeGroups.has(routeKey)) {
@@ -132,12 +133,9 @@ export async function BookingsList() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href="/admin/payments"
-            className="text-xs font-semibold px-3 py-2 rounded-lg bg-brand-green text-white hover:bg-[#066044] transition-colors shadow-xs"
-          >
-            Review Pending Payments →
-          </Link>
+          <Button size="sm" asChild>
+            <Link href="/admin/payments">Review Pending Payments →</Link>
+          </Button>
         </div>
       </div>
 

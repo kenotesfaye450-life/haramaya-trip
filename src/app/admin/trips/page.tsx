@@ -1,5 +1,5 @@
 import { TripsManagement } from "@/components/admin/trips-management";
-import { requireRole } from "@/lib/auth";
+import { requireRoleAt } from "@/lib/auth";
 import { orm } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -7,33 +7,43 @@ export const dynamic = "force-dynamic";
 export default async function AdminTripsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ editId?: string; create?: string }>;
+  searchParams: Promise<{
+    editId?: string;
+    create?: string;
+    fromLocationId?: string;
+    toLocationId?: string;
+    departureDate?: string;
+  }>;
 }) {
-  await requireRole("ADMIN");
-  const { editId, create } = await searchParams;
+  await requireRoleAt("/admin/trips", "ADMIN");
+  const params = await searchParams;
 
-  const [allTrips, routes, vehicles, events] = await Promise.all([
-    orm.Trip.include("route", (r) =>
-      r.include("originCampus").include("destination")
-    )
+  const [allTrips, locations, purposes, vehicles, events] = await Promise.all([
+    orm.Trip.include("originLocation")
+      .include("destinationLocation")
+      .include("purpose")
       .include("vehicle")
-      .orderBy((t) => t.departureAt.asc())
+      .orderBy((trip) => trip.departureAt.asc())
       .all(),
-    orm.Route.where({ isActive: true }).orderBy((r) => r.name.asc()).all(),
-    orm.Vehicle.where({ isActive: true }).orderBy((v) => v.name.asc()).all(),
-    orm.TravelEvent.where({ isActive: true }).orderBy((e) => e.name.asc()).all(),
+    orm.Location.where({ isActive: true }).orderBy((location) => location.name.asc()).all(),
+    orm.TripPurpose.where({ isActive: true }).orderBy((purpose) => purpose.name.asc()).all(),
+    orm.Vehicle.where({ isActive: true }).orderBy((vehicle) => vehicle.name.asc()).all(),
+    orm.TravelEvent.where({ isActive: true }).orderBy((event) => event.name.asc()).all(),
   ]);
 
-  const tripToEdit = editId ? allTrips.find((t) => t.id === editId) : null;
-
+  const tripToEdit = params.editId ? allTrips.find((trip) => trip.id === params.editId) : null;
   return (
     <TripsManagement
       allTrips={allTrips}
-      routes={routes}
+      locations={locations}
+      purposes={purposes}
       vehicles={vehicles}
       events={events}
       tripToEdit={tripToEdit}
-      isCreating={create === "true" || !!editId}
+      isCreating={params.create === "true" || !!params.editId}
+      initialFromLocationId={params.fromLocationId}
+      initialToLocationId={params.toLocationId}
+      initialDepartureDate={params.departureDate}
     />
   );
 }

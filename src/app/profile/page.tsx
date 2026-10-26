@@ -5,13 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/lib/actions/auth";
 import Link from "next/link";
+import { authPageHref } from "@/lib/return-to";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const account = await getCurrentAccount();
   if (!account) {
-    redirect("/login?next=/profile");
+    redirect(authPageHref("login", "/profile"));
   }
 
   const [bookings, demandCount] = await Promise.all([
@@ -56,7 +57,7 @@ export default async function ProfilePage() {
           </div>
 
           <form action={logoutAction}>
-            <Button variant="secondary" size="sm" type="submit">
+            <Button variant="danger" size="sm" type="submit">
               Sign Out
             </Button>
           </form>

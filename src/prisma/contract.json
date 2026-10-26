@@ -16,16 +16,12 @@
       "model": "Booking",
       "namespace": "public"
     },
-    "Campus": {
-      "model": "Campus",
-      "namespace": "public"
-    },
     "DemandRequest": {
       "model": "DemandRequest",
       "namespace": "public"
     },
     "Destination": {
-      "model": "Destination",
+      "model": "Location",
       "namespace": "public"
     },
     "Passenger": {
@@ -54,6 +50,10 @@
     },
     "Trip": {
       "model": "Trip",
+      "namespace": "public"
+    },
+    "TripPurpose": {
+      "model": "TripPurpose",
       "namespace": "public"
     },
     "Vehicle": {
@@ -146,6 +146,19 @@
               {
                 "name": "OTHER",
                 "value": "OTHER"
+              }
+            ]
+          },
+          "LocationKind": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "CAMPUS",
+                "value": "CAMPUS"
+              },
+              {
+                "name": "EXTERNAL",
+                "value": "EXTERNAL"
               }
             ]
           },
@@ -811,108 +824,6 @@
               "table": "Booking"
             }
           },
-          "Campus": {
-            "fields": {
-              "code": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "isActive": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/bool@1",
-                  "kind": "scalar"
-                }
-              },
-              "name": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {
-              "originRoutes": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "originCampusId"
-                  ]
-                },
-                "to": {
-                  "model": "Route",
-                  "namespace": "public"
-                }
-              },
-              "trips": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "originCampusId"
-                  ]
-                },
-                "to": {
-                  "model": "Trip",
-                  "namespace": "public"
-                }
-              }
-            },
-            "storage": {
-              "fields": {
-                "code": {
-                  "column": "code"
-                },
-                "createdAt": {
-                  "column": "createdAt"
-                },
-                "id": {
-                  "column": "id"
-                },
-                "isActive": {
-                  "column": "isActive"
-                },
-                "name": {
-                  "column": "name"
-                },
-                "updatedAt": {
-                  "column": "updatedAt"
-                }
-              },
-              "namespaceId": "public",
-              "table": "Campus"
-            }
-          },
           "DemandRequest": {
             "fields": {
               "accountId": {
@@ -926,6 +837,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "destinationLocationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -950,6 +868,13 @@
                   "kind": "scalar"
                 }
               },
+              "originLocationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "passengerCount": {
                 "nullable": false,
                 "type": {
@@ -958,7 +883,7 @@
                 }
               },
               "routeId": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -1009,6 +934,22 @@
                   "namespace": "public"
                 }
               },
+              "destinationLocation": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "destinationLocationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Location",
+                  "namespace": "public"
+                }
+              },
               "event": {
                 "cardinality": "N:1",
                 "nullable": true,
@@ -1025,9 +966,25 @@
                   "namespace": "public"
                 }
               },
-              "route": {
+              "originLocation": {
                 "cardinality": "N:1",
                 "nullable": false,
+                "on": {
+                  "localFields": [
+                    "originLocationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Location",
+                  "namespace": "public"
+                }
+              },
+              "route": {
+                "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "routeId"
@@ -1050,6 +1007,9 @@
                 "createdAt": {
                   "column": "createdAt"
                 },
+                "destinationLocationId": {
+                  "column": "destinationLocationId"
+                },
                 "eventId": {
                   "column": "eventId"
                 },
@@ -1058,6 +1018,9 @@
                 },
                 "note": {
                   "column": "note"
+                },
+                "originLocationId": {
+                  "column": "originLocationId"
                 },
                 "passengerCount": {
                   "column": "passengerCount"
@@ -1079,7 +1042,7 @@
               "table": "DemandRequest"
             }
           },
-          "Destination": {
+          "Location": {
             "fields": {
               "code": {
                 "nullable": false,
@@ -1109,6 +1072,19 @@
                   "kind": "scalar"
                 }
               },
+              "kind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "LocationKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "name": {
                 "nullable": false,
                 "type": {
@@ -1125,18 +1101,93 @@
               }
             },
             "relations": {
-              "routes": {
+              "demandFrom": {
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
                     "id"
                   ],
                   "targetFields": [
-                    "destinationId"
+                    "originLocationId"
+                  ]
+                },
+                "to": {
+                  "model": "DemandRequest",
+                  "namespace": "public"
+                }
+              },
+              "demandTo": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "destinationLocationId"
+                  ]
+                },
+                "to": {
+                  "model": "DemandRequest",
+                  "namespace": "public"
+                }
+              },
+              "routesFrom": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "originLocationId"
                   ]
                 },
                 "to": {
                   "model": "Route",
+                  "namespace": "public"
+                }
+              },
+              "routesTo": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "destinationLocationId"
+                  ]
+                },
+                "to": {
+                  "model": "Route",
+                  "namespace": "public"
+                }
+              },
+              "tripsFrom": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "originLocationId"
+                  ]
+                },
+                "to": {
+                  "model": "Trip",
+                  "namespace": "public"
+                }
+              },
+              "tripsTo": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "destinationLocationId"
+                  ]
+                },
+                "to": {
+                  "model": "Trip",
                   "namespace": "public"
                 }
               }
@@ -1154,6 +1205,9 @@
                 },
                 "isActive": {
                   "column": "isActive"
+                },
+                "kind": {
+                  "column": "kind"
                 },
                 "name": {
                   "column": "name"
@@ -1507,7 +1561,7 @@
                   "kind": "scalar"
                 }
               },
-              "destinationId": {
+              "destinationLocationId": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
@@ -1535,7 +1589,7 @@
                   "kind": "scalar"
                 }
               },
-              "originCampusId": {
+              "originLocationId": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
@@ -1566,35 +1620,35 @@
                   "namespace": "public"
                 }
               },
-              "destination": {
+              "destinationLocation": {
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
                   "localFields": [
-                    "destinationId"
+                    "destinationLocationId"
                   ],
                   "targetFields": [
                     "id"
                   ]
                 },
                 "to": {
-                  "model": "Destination",
+                  "model": "Location",
                   "namespace": "public"
                 }
               },
-              "originCampus": {
+              "originLocation": {
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
                   "localFields": [
-                    "originCampusId"
+                    "originLocationId"
                   ],
                   "targetFields": [
                     "id"
                   ]
                 },
                 "to": {
-                  "model": "Campus",
+                  "model": "Location",
                   "namespace": "public"
                 }
               },
@@ -1619,8 +1673,8 @@
                 "createdAt": {
                   "column": "createdAt"
                 },
-                "destinationId": {
-                  "column": "destinationId"
+                "destinationLocationId": {
+                  "column": "destinationLocationId"
                 },
                 "id": {
                   "column": "id"
@@ -1631,8 +1685,8 @@
                 "name": {
                   "column": "name"
                 },
-                "originCampusId": {
-                  "column": "originCampusId"
+                "originLocationId": {
+                  "column": "originLocationId"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -2009,6 +2063,13 @@
                   "kind": "scalar"
                 }
               },
+              "destinationLocationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "eventId": {
                 "nullable": true,
                 "type": {
@@ -2037,7 +2098,14 @@
                   "kind": "scalar"
                 }
               },
-              "originCampusId": {
+              "originLocationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "purposeId": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
@@ -2045,7 +2113,7 @@
                 }
               },
               "routeId": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -2125,6 +2193,22 @@
                   "namespace": "public"
                 }
               },
+              "destinationLocation": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "destinationLocationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Location",
+                  "namespace": "public"
+                }
+              },
               "event": {
                 "cardinality": "N:1",
                 "nullable": true,
@@ -2141,25 +2225,41 @@
                   "namespace": "public"
                 }
               },
-              "originCampus": {
+              "originLocation": {
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
                   "localFields": [
-                    "originCampusId"
+                    "originLocationId"
                   ],
                   "targetFields": [
                     "id"
                   ]
                 },
                 "to": {
-                  "model": "Campus",
+                  "model": "Location",
+                  "namespace": "public"
+                }
+              },
+              "purpose": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "purposeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "TripPurpose",
                   "namespace": "public"
                 }
               },
               "route": {
                 "cardinality": "N:1",
-                "nullable": false,
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "routeId"
@@ -2207,6 +2307,9 @@
                 "departureAt": {
                   "column": "departureAt"
                 },
+                "destinationLocationId": {
+                  "column": "destinationLocationId"
+                },
                 "eventId": {
                   "column": "eventId"
                 },
@@ -2219,8 +2322,11 @@
                 "notes": {
                   "column": "notes"
                 },
-                "originCampusId": {
-                  "column": "originCampusId"
+                "originLocationId": {
+                  "column": "originLocationId"
+                },
+                "purposeId": {
+                  "column": "purposeId"
                 },
                 "routeId": {
                   "column": "routeId"
@@ -2243,6 +2349,103 @@
               },
               "namespaceId": "public",
               "table": "Trip"
+            }
+          },
+          "TripPurpose": {
+            "fields": {
+              "code": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "trips": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "purposeId"
+                  ]
+                },
+                "to": {
+                  "model": "Trip",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "code": {
+                  "column": "code"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "TripPurpose"
             }
           },
           "Vehicle": {
@@ -2738,62 +2941,6 @@
                 }
               ]
             },
-            "Campus": {
-              "columns": {
-                "code": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
-                },
-                "createdAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "dataType": "pg/timestamptz",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nullable": false
-                },
-                "id": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
-                },
-                "isActive": {
-                  "codecId": "pg/bool@1",
-                  "dataType": "pg/bool",
-                  "default": {
-                    "kind": "literal",
-                    "value": true
-                  },
-                  "nullable": false
-                },
-                "name": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
-                },
-                "updatedAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "dataType": "pg/timestamptz",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": [
-                {
-                  "columns": [
-                    "code"
-                  ]
-                }
-              ]
-            },
             "DemandRequest": {
               "checks": [
                 {
@@ -2822,6 +2969,11 @@
                   },
                   "nullable": false
                 },
+                "destinationLocationId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
                 "eventId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -2837,6 +2989,11 @@
                   "dataType": "pg/text",
                   "nullable": true
                 },
+                "originLocationId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
                 "passengerCount": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
@@ -2845,7 +3002,7 @@
                 "routeId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false
+                  "nullable": true
                 },
                 "status": {
                   "codecId": "pg/text@1",
@@ -2912,6 +3069,46 @@
                 },
                 {
                   "index": {
+                    "name": "DemandRequest_originLocationId_idx_e5686e06"
+                  },
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "originLocationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "DemandRequest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Destination"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "DemandRequest_destinationLocationId_idx_307b052b"
+                  },
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "destinationLocationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "DemandRequest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Destination"
+                  }
+                },
+                {
+                  "index": {
                     "name": "DemandRequest_eventId_idx_6a266d47"
                   },
                   "onDelete": "restrict",
@@ -2942,10 +3139,26 @@
                 },
                 {
                   "columns": [
+                    "destinationLocationId"
+                  ],
+                  "name": "DemandRequest_destinationLocationId_idx_307b052b",
+                  "prefix": "DemandRequest_destinationLocationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "eventId"
                   ],
                   "name": "DemandRequest_eventId_idx_6a266d47",
                   "prefix": "DemandRequest_eventId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "originLocationId"
+                  ],
+                  "name": "DemandRequest_originLocationId_idx_e5686e06",
+                  "prefix": "DemandRequest_originLocationId_idx",
                   "unique": false
                 },
                 {
@@ -2963,6 +3176,16 @@
                   "name": "DemandRequest_travelDate_idx_6e971307",
                   "prefix": "DemandRequest_travelDate_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "originLocationId",
+                    "destinationLocationId",
+                    "travelDate"
+                  ],
+                  "name": "demand_location_date_0975cc9f",
+                  "prefix": "demand_location_date",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -2973,6 +3196,13 @@
               "uniques": []
             },
             "Destination": {
+              "checks": [
+                {
+                  "expression": "\"kind\" IN ('CAMPUS', 'EXTERNAL')",
+                  "name": "Destination_kind_check_dabea381",
+                  "prefix": "Destination_kind_check"
+                }
+              ],
               "columns": {
                 "code": {
                   "codecId": "pg/text@1",
@@ -3001,6 +3231,21 @@
                     "value": true
                   },
                   "nullable": false
+                },
+                "kind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "EXTERNAL"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "LocationKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "name": {
                   "codecId": "pg/text@1",
@@ -3347,7 +3592,7 @@
                   },
                   "nullable": false
                 },
-                "destinationId": {
+                "destinationLocationId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
@@ -3371,7 +3616,7 @@
                   "dataType": "pg/text",
                   "nullable": false
                 },
-                "originCampusId": {
+                "originLocationId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
@@ -3385,12 +3630,12 @@
               "foreignKeys": [
                 {
                   "index": {
-                    "name": "Route_originCampusId_idx_c7831415"
+                    "name": "Route_originLocationId_idx_e5686e06"
                   },
                   "onDelete": "restrict",
                   "source": {
                     "columns": [
-                      "originCampusId"
+                      "originLocationId"
                     ],
                     "namespaceId": "public",
                     "tableName": "Route"
@@ -3400,17 +3645,17 @@
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Campus"
+                    "tableName": "Destination"
                   }
                 },
                 {
                   "index": {
-                    "name": "Route_destinationId_idx_1646ee5c"
+                    "name": "Route_destinationLocationId_idx_307b052b"
                   },
                   "onDelete": "restrict",
                   "source": {
                     "columns": [
-                      "destinationId"
+                      "destinationLocationId"
                     ],
                     "namespaceId": "public",
                     "tableName": "Route"
@@ -3427,18 +3672,18 @@
               "indexes": [
                 {
                   "columns": [
-                    "destinationId"
+                    "destinationLocationId"
                   ],
-                  "name": "Route_destinationId_idx_1646ee5c",
-                  "prefix": "Route_destinationId_idx",
+                  "name": "Route_destinationLocationId_idx_307b052b",
+                  "prefix": "Route_destinationLocationId_idx",
                   "unique": false
                 },
                 {
                   "columns": [
-                    "originCampusId"
+                    "originLocationId"
                   ],
-                  "name": "Route_originCampusId_idx_c7831415",
-                  "prefix": "Route_originCampusId_idx",
+                  "name": "Route_originLocationId_idx_e5686e06",
+                  "prefix": "Route_originLocationId_idx",
                   "unique": false
                 }
               ],
@@ -3450,8 +3695,8 @@
               "uniques": [
                 {
                   "columns": [
-                    "originCampusId",
-                    "destinationId"
+                    "originLocationId",
+                    "destinationLocationId"
                   ]
                 }
               ]
@@ -3788,6 +4033,11 @@
                   "dataType": "pg/timestamptz",
                   "nullable": false
                 },
+                "destinationLocationId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
                 "eventId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -3808,7 +4058,12 @@
                   "dataType": "pg/text",
                   "nullable": true
                 },
-                "originCampusId": {
+                "originLocationId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "purposeId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
@@ -3816,7 +4071,7 @@
                 "routeId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false
+                  "nullable": true
                 },
                 "seatCapacity": {
                   "codecId": "pg/int4@1",
@@ -3877,12 +4132,12 @@
                 },
                 {
                   "index": {
-                    "name": "Trip_originCampusId_idx_c7831415"
+                    "name": "Trip_originLocationId_idx_e5686e06"
                   },
                   "onDelete": "restrict",
                   "source": {
                     "columns": [
-                      "originCampusId"
+                      "originLocationId"
                     ],
                     "namespaceId": "public",
                     "tableName": "Trip"
@@ -3892,7 +4147,47 @@
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Campus"
+                    "tableName": "Destination"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "Trip_destinationLocationId_idx_307b052b"
+                  },
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "destinationLocationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Trip"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Destination"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "Trip_purposeId_idx_6b9d8485"
+                  },
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "purposeId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Trip"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "TripPurpose"
                   }
                 },
                 {
@@ -3975,6 +4270,14 @@
                 },
                 {
                   "columns": [
+                    "destinationLocationId"
+                  ],
+                  "name": "Trip_destinationLocationId_idx_307b052b",
+                  "prefix": "Trip_destinationLocationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "eventId"
                   ],
                   "name": "Trip_eventId_idx_6a266d47",
@@ -3983,10 +4286,27 @@
                 },
                 {
                   "columns": [
-                    "originCampusId"
+                    "originLocationId",
+                    "destinationLocationId"
                   ],
-                  "name": "Trip_originCampusId_idx_c7831415",
-                  "prefix": "Trip_originCampusId_idx",
+                  "name": "Trip_originLocationId_destinationLocationId_idx_3ddde4f7",
+                  "prefix": "Trip_originLocationId_destinationLocationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "originLocationId"
+                  ],
+                  "name": "Trip_originLocationId_idx_e5686e06",
+                  "prefix": "Trip_originLocationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "purposeId"
+                  ],
+                  "name": "Trip_purposeId_idx_6b9d8485",
+                  "prefix": "Trip_purposeId_idx",
                   "unique": false
                 },
                 {
@@ -4020,6 +4340,67 @@
                 ]
               },
               "uniques": []
+            },
+            "TripPurpose": {
+              "columns": {
+                "code": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "code"
+                  ]
+                }
+              ]
             },
             "Vehicle": {
               "checks": [
@@ -4127,6 +4508,13 @@
                 "OTHER"
               ]
             },
+            "LocationKind": {
+              "kind": "valueSet",
+              "values": [
+                "CAMPUS",
+                "EXTERNAL"
+              ]
+            },
             "PaymentStatus": {
               "kind": "valueSet",
               "values": [
@@ -4161,10 +4549,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "70e00256faba85048a27cd613b16814f0cde64c19bb71d5f908dcb2f40df84f9"
+    "storageHash": "6a0a1b941ff56f62002c7fd7a2fe16ee324bc740ebde1fffa12752425b26a954"
   },
   "execution": {
-    "executionHash": "7ffee584f756c2acdd94c2325a35af59c986a69629370a088811f118ab29e39b",
+    "executionHash": "b51e4c87a53f0342eafc9c8757ff24f5350eecdac8111befcae61017253c2d1b",
     "mutations": {
       "defaults": [
         {
@@ -4226,32 +4614,6 @@
           },
           "ref": {
             "entry": "Booking",
-            "field": "updatedAt",
-            "namespace": "public"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "uuidv7",
-            "kind": "generator"
-          },
-          "ref": {
-            "entry": "Campus",
-            "field": "id",
-            "namespace": "public"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "timestamptzStringNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "timestamptzStringNow",
-            "kind": "generator"
-          },
-          "ref": {
-            "entry": "Campus",
             "field": "updatedAt",
             "namespace": "public"
           }
@@ -4441,6 +4803,32 @@
           },
           "ref": {
             "entry": "Trip",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "TripPurpose",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestamptzStringNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestamptzStringNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "TripPurpose",
             "field": "updatedAt",
             "namespace": "public"
           }

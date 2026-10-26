@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { BrandEmblem, BrandLogo } from "@/components/brand-logo";
+import { Button } from "@/components/ui/button";
 
 interface AppShellProps {
   account: SessionAccount | null;
@@ -339,12 +340,9 @@ export function AppShell({ account, children }: AppShellProps) {
                 </span>
               </Link>
             ) : (
-              <Link
-                href="/login"
-                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-brand-green text-white shadow-xs"
-              >
-                Sign In
-              </Link>
+              <Button size="sm" asChild>
+                <Link href="/login">Sign in</Link>
+              </Button>
             )}
           </div>
         </div>
@@ -455,28 +453,19 @@ export function AppShell({ account, children }: AppShellProps) {
                 <span className="text-xs text-[#87918B] group-hover:text-current">↗</span>
               </Link>
               <form action={logoutAction}>
-                <button
-                  type="submit"
-                  className="w-full text-center text-xs font-semibold py-1.5 rounded-lg border border-[#D8E5F2] text-[#344B63] hover:text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#FECACA] transition-colors cursor-pointer"
-                >
-                  Sign Out
-                </button>
+                <Button variant="danger" size="sm" fullWidth type="submit">
+                  Sign out
+                </Button>
               </form>
             </div>
           ) : (
-            <div className="flex gap-2">
-              <Link
-                href="/login"
-                className="flex-1 text-center py-2 text-xs font-bold border border-[#E3E8E5] rounded-lg hover:bg-white transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/register"
-                className="flex-1 text-center py-2 text-xs font-bold bg-brand-green text-white rounded-lg hover:bg-[#066044] transition-colors"
-              >
-                Register
-              </Link>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="neutral" size="sm" fullWidth asChild>
+                <Link href="/login">Sign in</Link>
+              </Button>
+              <Button variant="secondary" size="sm" fullWidth asChild>
+                <Link href="/register">Register</Link>
+              </Button>
             </div>
           )}
         </div>
@@ -578,30 +567,28 @@ export function AppShell({ account, children }: AppShellProps) {
                     <div className="text-[10px] text-brand-green font-semibold uppercase">{account.role}</div>
                   </div>
                   <form action={logoutAction}>
-                    <button
-                      type="submit"
-                      className="w-full text-center text-xs font-semibold text-[#DC2626] py-2 rounded-lg border border-[#FECACA] bg-[#FEF2F2] cursor-pointer"
-                    >
-                      Sign Out
-                    </button>
+                    <Button variant="danger" size="sm" fullWidth type="submit">
+                      Sign out
+                    </Button>
                   </form>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <Link
-                    href="/login"
-                    onClick={() => setMobileDrawerOpen(false)}
-                    className="flex-1 text-center py-2 text-xs font-bold border border-[#E3E8E5] rounded-lg"
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="neutral"
+                    size="sm"
+                    fullWidth
+                    asChild
                   >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setMobileDrawerOpen(false)}
-                    className="flex-1 text-center py-2 text-xs font-bold bg-brand-green text-white rounded-lg"
-                  >
-                    Register
-                  </Link>
+                    <Link href="/login" onClick={() => setMobileDrawerOpen(false)}>
+                      Sign in
+                    </Link>
+                  </Button>
+                  <Button variant="secondary" size="sm" fullWidth asChild>
+                    <Link href="/register" onClick={() => setMobileDrawerOpen(false)}>
+                      Register
+                    </Link>
+                  </Button>
                 </div>
               )}
             </div>

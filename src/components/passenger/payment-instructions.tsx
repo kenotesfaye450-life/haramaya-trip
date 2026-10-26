@@ -105,6 +105,9 @@ export function PaymentInstructions({
         <label htmlFor="payment-receipt" className="block text-xs font-semibold text-[#344B63]">
           Upload payment receipt
         </label>
+        <p className="text-[11px] text-[#647A91]">
+          If you refresh before submitting, select the receipt again. Browsers do not keep selected files between visits.
+        </p>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <input

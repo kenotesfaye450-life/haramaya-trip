@@ -20,65 +20,37 @@ async function admin() {
   return requireRole("ADMIN");
 }
 
-export async function saveCampusAction(_: unknown, formData: FormData) {
+export async function saveLocationAction(_: unknown, formData: FormData) {
   const account = await admin();
   try {
     const id = readString(formData, "id");
     const name = readString(formData, "name");
     const code = readString(formData, "code").toUpperCase();
-    if (!name || !code) throw new AppError("Campus name and code are required.");
+    const kind = readString(formData, "kind");
+    if (!name || !/^[A-Z0-9_-]{2,12}$/.test(code)) {
+      throw new AppError("Enter a location name and a code of 2–12 letters, numbers, or dashes.");
+    }
+    if (kind !== "CAMPUS" && kind !== "EXTERNAL") {
+      throw new AppError("Select a valid location type.");
+    }
     if (id) {
-      await orm.Campus.where({ id }).update({ name, code, isActive: bool(formData, "isActive") });
+      await orm.Location.where({ id }).update({ name, code, kind, isActive: bool(formData, "isActive") });
     } else {
-      await orm.Campus.create({ name, code, isActive: true });
-      // Also ensure Destination table has this location so routes can arrive here
-      const existingDest = await orm.Destination.where({ code }).first();
-      if (!existingDest) {
-        await orm.Destination.create({ name, code, isActive: true });
-      }
+      await orm.Location.create({ name, code, kind, isActive: true });
     }
     await writeAudit({
       actorId: account.id,
-      action: id ? "campus.update" : "campus.create",
-      entityType: "Campus",
+      action: id ? "location.update" : "location.create",
+      entityType: "Location",
       entityId: id || code,
     });
   } catch (error) {
     const formatted = formatErrorResponse(error);
     return { error: formatted.error };
   }
-  revalidatePath("/admin/campuses");
-  return { ok: true };
-}
-
-export async function saveDestinationAction(_: unknown, formData: FormData) {
-  const account = await admin();
-  try {
-    const id = readString(formData, "id");
-    const name = readString(formData, "name");
-    const code = readString(formData, "code").toUpperCase();
-    if (!name || !code) throw new AppError("Destination name and code are required.");
-    if (id) {
-      await orm.Destination.where({ id }).update({ name, code, isActive: bool(formData, "isActive") });
-    } else {
-      await orm.Destination.create({ name, code, isActive: true });
-      // Also ensure Campus table has this location so routes can depart from here
-      const existingCampus = await orm.Campus.where({ code }).first();
-      if (!existingCampus) {
-        await orm.Campus.create({ name, code, isActive: true });
-      }
-    }
-    await writeAudit({
-      actorId: account.id,
-      action: id ? "destination.update" : "destination.create",
-      entityType: "Destination",
-      entityId: id || code,
-    });
-  } catch (error) {
-    const formatted = formatErrorResponse(error);
-    return { error: formatted.error };
-  }
-  revalidatePath("/admin/destinations");
+  revalidatePath("/admin/routes");
+  revalidatePath("/");
+  revalidatePath("/trips");
   return { ok: true };
 }
 
@@ -87,23 +59,28 @@ export async function saveRouteAction(_: unknown, formData: FormData) {
   try {
     const id = readString(formData, "id");
     const name = readString(formData, "name");
-    const originCampusId = readString(formData, "originCampusId");
-    const destinationId = readString(formData, "destinationId");
-    if (!name || !originCampusId || !destinationId) {
+    const originLocationId = readString(formData, "originLocationId");
+    const destinationLocationId = readString(formData, "destinationLocationId");
+    if (!name || !originLocationId || !destinationLocationId) {
       throw new AppError("Route name, origin location, and destination are required.");
     }
-    if (originCampusId === destinationId) {
+    if (originLocationId === destinationLocationId) {
       throw new AppError("Origin and destination cannot be the same location.");
     }
+    const [origin, destination] = await Promise.all([
+      orm.Location.where({ id: originLocationId, isActive: true }).first(),
+      orm.Location.where({ id: destinationLocationId, isActive: true }).first(),
+    ]);
+    if (!origin || !destination) throw new AppError("Select two active locations.");
     if (id) {
       await orm.Route.where({ id }).update({
         name,
-        originCampusId,
-        destinationId,
+        originLocationId,
+        destinationLocationId,
         isActive: bool(formData, "isActive"),
       });
     } else {
-      await orm.Route.create({ name, originCampusId, destinationId, isActive: true });
+      await orm.Route.create({ name, originLocationId, destinationLocationId, isActive: true });
     }
     await writeAudit({
       actorId: account.id,
@@ -194,19 +171,69 @@ export async function saveEventAction(_: unknown, formData: FormData) {
   return { ok: true };
 }
 
+export async function saveTripPurposeAction(_: unknown, formData: FormData) {
+  const account = await admin();
+  try {
+    const id = readString(formData, "id");
+    const submittedCode = readString(formData, "code").toUpperCase();
+    const name = readString(formData, "name");
+    const description = readString(formData, "description");
+    const existingPurpose = id ? await orm.TripPurpose.where({ id }).first() : null;
+    if (id && !existingPurpose) throw new AppError("Trip purpose not found.");
+    const code = existingPurpose?.code ?? submittedCode;
+    if (!name || !/^[A-Z0-9_-]{2,40}$/.test(code)) {
+      throw new AppError("Enter a purpose name and a code of 2–40 letters, numbers, or dashes.");
+    }
+    const values = { code, name, description: description || null };
+    if (id) {
+      await orm.TripPurpose.where({ id }).update({
+        ...values,
+        isActive: bool(formData, "isActive"),
+      });
+    } else {
+      await orm.TripPurpose.create({ ...values, isActive: true });
+    }
+    await writeAudit({
+      actorId: account.id,
+      action: id ? "trip-purpose.update" : "trip-purpose.create",
+      entityType: "TripPurpose",
+      entityId: id || code,
+    });
+  } catch (error) {
+    const formatted = formatErrorResponse(error);
+    return { error: formatted.error };
+  }
+  revalidatePath("/admin/events");
+  revalidatePath("/admin/trips");
+  return { ok: true };
+}
+
 export async function saveTripAction(_: unknown, formData: FormData) {
   const account = await admin();
   try {
     const id = readString(formData, "id");
-    const routeId = readString(formData, "routeId");
+    const originLocationId = readString(formData, "originLocationId");
+    const destinationLocationId = readString(formData, "destinationLocationId");
+    const purposeId = readString(formData, "purposeId");
     const eventId = readString(formData, "eventId");
     const vehicleId = readString(formData, "vehicleId");
     const departureAt = readString(formData, "departureAt");
     const arrivalAt = readString(formData, "arrivalAt");
     const status = readString(formData, "status") || "DRAFT";
     const notes = readString(formData, "notes");
-    const route = await orm.Route.where({ id: routeId }).first();
-    if (!route) throw new AppError("Select a valid route.");
+    if (!originLocationId || !destinationLocationId || !purposeId) {
+      throw new AppError("Select a trip purpose, origin, and destination.");
+    }
+    if (originLocationId === destinationLocationId) {
+      throw new AppError("Origin and destination cannot be the same location.");
+    }
+    const [originLocation, destinationLocation, purpose] = await Promise.all([
+      orm.Location.where({ id: originLocationId, isActive: true }).first(),
+      orm.Location.where({ id: destinationLocationId, isActive: true }).first(),
+      orm.TripPurpose.where({ id: purposeId, isActive: true }).first(),
+    ]);
+    if (!originLocation || !destinationLocation) throw new AppError("Select two active locations.");
+    if (!purpose) throw new AppError("Select an active trip purpose.");
     if (!departureAt) throw new AppError("Departure time is required.");
     const vehicle = vehicleId ? await orm.Vehicle.where({ id: vehicleId }).first() : null;
     if (vehicleId && !vehicle) throw new AppError("Selected vehicle not found.");
@@ -247,10 +274,31 @@ export async function saveTripAction(_: unknown, formData: FormData) {
     if (!Number.isInteger(farePerSeat) || farePerSeat < 0) {
       throw new AppError("Fare per seat must be a non-negative integer.");
     }
+    const existing = id ? await orm.Trip.where({ id }).first() : null;
+    if (id && !existing) throw new AppError("Trip not found.");
+    if (existing && seatCapacity < existing.seatsReserved) {
+      throw new AppError("Capacity cannot be lower than seats already reserved.");
+    }
     const bookingDeadline = readString(formData, "bookingDeadline");
+    let route = await orm.Route.where({ originLocationId, destinationLocationId }).first();
+    if (!route) {
+      try {
+        route = await orm.Route.create({
+          name: `${originLocation.name} to ${destinationLocation.name}`,
+          originLocationId,
+          destinationLocationId,
+          isActive: true,
+        });
+      } catch (error) {
+        route = await orm.Route.where({ originLocationId, destinationLocationId }).first();
+        if (!route) throw error;
+      }
+    }
     const payload = {
-      routeId,
-      originCampusId: route.originCampusId,
+      routeId: route.id,
+      originLocationId,
+      destinationLocationId,
+      purposeId,
       eventId: eventId || null,
       vehicleId: vehicleId || null,
       departureAt: new Date(departureAt).toISOString(),
@@ -263,11 +311,6 @@ export async function saveTripAction(_: unknown, formData: FormData) {
       createdById: account.id,
     };
     if (id) {
-      const existing = await orm.Trip.where({ id }).first();
-      if (!existing) throw new AppError("Trip not found.");
-      if (seatCapacity < existing.seatsReserved) {
-        throw new AppError("Capacity cannot be lower than seats already reserved.");
-      }
       await orm.Trip.where({ id }).update(payload);
     } else {
       await orm.Trip.create({ ...payload, seatsReserved: 0 });
@@ -276,7 +319,7 @@ export async function saveTripAction(_: unknown, formData: FormData) {
       actorId: account.id,
       action: id ? "trip.update" : "trip.create",
       entityType: "Trip",
-      entityId: id || routeId,
+      entityId: id || route.id,
     });
   } catch (error) {
     const formatted = formatErrorResponse(error);

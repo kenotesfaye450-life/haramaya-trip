@@ -1,0 +1,2468 @@
+[
+  {
+    "id": "renameColumn.Route.originCampusId",
+    "label": "Rename column \"Route\".\"originCampusId\" to \"originLocationId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "originLocationId",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"originCampusId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Route",
+          "originCampusId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"originCampusId\" on \"Route\""
+        }
+      },
+      {
+        "description": "ensure column \"originLocationId\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Route",
+          "originLocationId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"originLocationId\" on \"Route\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename column \"originCampusId\" to \"originLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"Route\" RENAME COLUMN \"originCampusId\" TO \"originLocationId\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"originLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Route",
+          "originLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"originLocationId\" on \"Route\""
+        }
+      },
+      {
+        "description": "verify column \"originCampusId\" no longer exists",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Route",
+          "originCampusId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"originCampusId\" on \"Route\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.public.Route.Route_originCampusId_fkey.rename",
+    "label": "Rename foreign key \"Route_originCampusId_fkey\" to \"Route_originLocationId_fkey\" on \"Route\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Route_originLocationId_fkey",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Route_originCampusId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originCampusId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Route_originCampusId_fkey\" on \"Route\""
+        }
+      },
+      {
+        "description": "ensure constraint \"Route_originLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originLocationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Route_originLocationId_fkey\" on \"Route\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename foreign key \"Route_originCampusId_fkey\" to \"Route_originLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Route\" RENAME CONSTRAINT \"Route_originCampusId_fkey\" TO \"Route_originLocationId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Route_originLocationId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originLocationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Route_originLocationId_fkey\" on \"Route\""
+        }
+      },
+      {
+        "description": "verify constraint \"Route_originCampusId_fkey\" no longer exists",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originCampusId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Route_originCampusId_fkey\" on \"Route\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "index.public.Route.Route_originCampusId_idx_c7831415.rename",
+    "label": "Rename index \"Route_originCampusId_idx_c7831415\" to \"Route_originLocationId_idx_e5686e06\" on \"Route\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Route_originLocationId_idx_e5686e06",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Route_originCampusId_idx_c7831415\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Route_originCampusId_idx_c7831415\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "index \"Route_originCampusId_idx_c7831415\""
+        }
+      },
+      {
+        "description": "ensure index \"Route_originLocationId_idx_e5686e06\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Route_originLocationId_idx_e5686e06\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Route_originLocationId_idx_e5686e06\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename index \"Route_originCampusId_idx_c7831415\" to \"Route_originLocationId_idx_e5686e06\"",
+        "sql": "ALTER INDEX \"public\".\"Route_originCampusId_idx_c7831415\" RENAME TO \"Route_originLocationId_idx_e5686e06\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Route_originLocationId_idx_e5686e06\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Route_originLocationId_idx_e5686e06\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "index \"Route_originLocationId_idx_e5686e06\""
+        }
+      },
+      {
+        "description": "verify index \"Route_originCampusId_idx_c7831415\" no longer exists",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Route_originCampusId_idx_c7831415\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Route_originCampusId_idx_c7831415\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "renameColumn.Route.destinationId",
+    "label": "Rename column \"Route\".\"destinationId\" to \"destinationLocationId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "destinationLocationId",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"destinationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Route",
+          "destinationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"destinationId\" on \"Route\""
+        }
+      },
+      {
+        "description": "ensure column \"destinationLocationId\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Route",
+          "destinationLocationId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"destinationLocationId\" on \"Route\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename column \"destinationId\" to \"destinationLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"Route\" RENAME COLUMN \"destinationId\" TO \"destinationLocationId\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"destinationLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Route",
+          "destinationLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"destinationLocationId\" on \"Route\""
+        }
+      },
+      {
+        "description": "verify column \"destinationId\" no longer exists",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Route",
+          "destinationId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"destinationId\" on \"Route\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.public.Route.Route_originCampusId_destinationId_key.rename",
+    "label": "Rename unique constraint \"Route_originCampusId_destinationId_key\" to \"Route_originLocationId_destinationLocationId_key\" on \"Route\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "Route_originLocationId_destinationLocationId_key",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Route_originCampusId_destinationId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originCampusId_destinationId_key",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Route_originCampusId_destinationId_key\" on \"Route\""
+        }
+      },
+      {
+        "description": "ensure constraint \"Route_originLocationId_destinationLocationId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originLocationId_destinationLocationId_key",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Route_originLocationId_destinationLocationId_key\" on \"Route\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename unique constraint \"Route_originCampusId_destinationId_key\" to \"Route_originLocationId_destinationLocationId_key\"",
+        "sql": "ALTER TABLE \"public\".\"Route\" RENAME CONSTRAINT \"Route_originCampusId_destinationId_key\" TO \"Route_originLocationId_destinationLocationId_key\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Route_originLocationId_destinationLocationId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originLocationId_destinationLocationId_key",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Route_originLocationId_destinationLocationId_key\" on \"Route\""
+        }
+      },
+      {
+        "description": "verify constraint \"Route_originCampusId_destinationId_key\" no longer exists",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originCampusId_destinationId_key",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Route_originCampusId_destinationId_key\" on \"Route\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.public.Route.Route_destinationId_fkey.rename",
+    "label": "Rename foreign key \"Route_destinationId_fkey\" to \"Route_destinationLocationId_fkey\" on \"Route\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Route_destinationLocationId_fkey",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Route_destinationId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_destinationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Route_destinationId_fkey\" on \"Route\""
+        }
+      },
+      {
+        "description": "ensure constraint \"Route_destinationLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_destinationLocationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Route_destinationLocationId_fkey\" on \"Route\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename foreign key \"Route_destinationId_fkey\" to \"Route_destinationLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Route\" RENAME CONSTRAINT \"Route_destinationId_fkey\" TO \"Route_destinationLocationId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Route_destinationLocationId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_destinationLocationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Route_destinationLocationId_fkey\" on \"Route\""
+        }
+      },
+      {
+        "description": "verify constraint \"Route_destinationId_fkey\" no longer exists",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_destinationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Route_destinationId_fkey\" on \"Route\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "index.public.Route.Route_destinationId_idx_1646ee5c.rename",
+    "label": "Rename index \"Route_destinationId_idx_1646ee5c\" to \"Route_destinationLocationId_idx_307b052b\" on \"Route\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Route_destinationLocationId_idx_307b052b",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Route_destinationId_idx_1646ee5c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Route_destinationId_idx_1646ee5c\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "index \"Route_destinationId_idx_1646ee5c\""
+        }
+      },
+      {
+        "description": "ensure index \"Route_destinationLocationId_idx_307b052b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Route_destinationLocationId_idx_307b052b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Route_destinationLocationId_idx_307b052b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename index \"Route_destinationId_idx_1646ee5c\" to \"Route_destinationLocationId_idx_307b052b\"",
+        "sql": "ALTER INDEX \"public\".\"Route_destinationId_idx_1646ee5c\" RENAME TO \"Route_destinationLocationId_idx_307b052b\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Route_destinationLocationId_idx_307b052b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Route_destinationLocationId_idx_307b052b\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "index \"Route_destinationLocationId_idx_307b052b\""
+        }
+      },
+      {
+        "description": "verify index \"Route_destinationId_idx_1646ee5c\" no longer exists",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Route_destinationId_idx_1646ee5c\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Route_destinationId_idx_1646ee5c\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "renameColumn.Trip.originCampusId",
+    "label": "Rename column \"Trip\".\"originCampusId\" to \"originLocationId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "originLocationId",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"originCampusId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "originCampusId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"originCampusId\" on \"Trip\""
+        }
+      },
+      {
+        "description": "ensure column \"originLocationId\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "originLocationId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"originLocationId\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename column \"originCampusId\" to \"originLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" RENAME COLUMN \"originCampusId\" TO \"originLocationId\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"originLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "originLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"originLocationId\" on \"Trip\""
+        }
+      },
+      {
+        "description": "verify column \"originCampusId\" no longer exists",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "originCampusId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"originCampusId\" on \"Trip\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.public.Trip.Trip_originCampusId_fkey.rename",
+    "label": "Rename foreign key \"Trip_originCampusId_fkey\" to \"Trip_originLocationId_fkey\" on \"Trip\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Trip_originLocationId_fkey",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Trip_originCampusId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_originCampusId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Trip_originCampusId_fkey\" on \"Trip\""
+        }
+      },
+      {
+        "description": "ensure constraint \"Trip_originLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_originLocationId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Trip_originLocationId_fkey\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename foreign key \"Trip_originCampusId_fkey\" to \"Trip_originLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" RENAME CONSTRAINT \"Trip_originCampusId_fkey\" TO \"Trip_originLocationId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Trip_originLocationId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_originLocationId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Trip_originLocationId_fkey\" on \"Trip\""
+        }
+      },
+      {
+        "description": "verify constraint \"Trip_originCampusId_fkey\" no longer exists",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_originCampusId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Trip_originCampusId_fkey\" on \"Trip\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "index.public.Trip.Trip_originCampusId_idx_c7831415.rename",
+    "label": "Rename index \"Trip_originCampusId_idx_c7831415\" to \"Trip_originLocationId_idx_e5686e06\" on \"Trip\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Trip_originLocationId_idx_e5686e06",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Trip_originCampusId_idx_c7831415\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_originCampusId_idx_c7831415\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "index \"Trip_originCampusId_idx_c7831415\""
+        }
+      },
+      {
+        "description": "ensure index \"Trip_originLocationId_idx_e5686e06\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_originLocationId_idx_e5686e06\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Trip_originLocationId_idx_e5686e06\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "rename index \"Trip_originCampusId_idx_c7831415\" to \"Trip_originLocationId_idx_e5686e06\"",
+        "sql": "ALTER INDEX \"public\".\"Trip_originCampusId_idx_c7831415\" RENAME TO \"Trip_originLocationId_idx_e5686e06\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Trip_originLocationId_idx_e5686e06\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_originLocationId_idx_e5686e06\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "index \"Trip_originLocationId_idx_e5686e06\""
+        }
+      },
+      {
+        "description": "verify index \"Trip_originCampusId_idx_c7831415\" no longer exists",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_originCampusId_idx_c7831415\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Trip_originCampusId_idx_c7831415\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropConstraint.Route.Route_originLocationId_fkey",
+    "label": "Drop constraint \"Route_originLocationId_fkey\" on \"Route\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Route_originLocationId_fkey",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Route_originLocationId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originLocationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Route_originLocationId_fkey\" on \"Route\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"Route_originLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Route\" DROP CONSTRAINT \"Route_originLocationId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Route_originLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originLocationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Route_originLocationId_fkey\" on \"Route\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropConstraint.Trip.Trip_originLocationId_fkey",
+    "label": "Drop constraint \"Trip_originLocationId_fkey\" on \"Trip\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Trip_originLocationId_fkey",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Trip_originLocationId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_originLocationId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Trip_originLocationId_fkey\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"Trip_originLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" DROP CONSTRAINT \"Trip_originLocationId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Trip_originLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_originLocationId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Trip_originLocationId_fkey\" on \"Trip\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.TripPurpose",
+    "label": "Create table \"TripPurpose\"",
+    "summary": "Creates table \"TripPurpose\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "TripPurpose"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"TripPurpose\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"TripPurpose\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"TripPurpose\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"TripPurpose\"",
+        "sql": "CREATE TABLE \"public\".\"TripPurpose\" (\n  \"code\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"name\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"TripPurpose\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"TripPurpose\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"TripPurpose\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "column.public.Destination.kind",
+    "label": "Add column \"kind\" to \"Destination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "kind",
+        "table": "Destination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"kind\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Destination",
+          "kind"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"kind\" on \"Destination\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"kind\"",
+        "sql": "ALTER TABLE \"public\".\"Destination\" ADD COLUMN \"kind\" text DEFAULT 'EXTERNAL' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"kind\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Destination",
+          "kind"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"kind\" on \"Destination\""
+        }
+      },
+      {
+        "description": "verify column \"kind\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Destination",
+          "kind",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"kind\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Destination",
+          "kind",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.DemandRequest.destinationLocationId",
+    "label": "Add column \"destinationLocationId\" to \"DemandRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "destinationLocationId",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"destinationLocationId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "destinationLocationId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"destinationLocationId\" on \"DemandRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"destinationLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"DemandRequest\" ADD COLUMN \"destinationLocationId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"destinationLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "destinationLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"destinationLocationId\" on \"DemandRequest\""
+        }
+      },
+      {
+        "description": "verify column \"destinationLocationId\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "destinationLocationId",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data_migration.backfill-DemandRequest-destinationLocationId",
+    "label": "Data transform: backfill-DemandRequest-destinationLocationId",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "destinationLocationId",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "Check backfill-DemandRequest-destinationLocationId has work to do",
+        "sql": "SELECT EXISTS (\n          SELECT 'pending'::text AS \"code\"\n          WHERE\n            EXISTS (SELECT 1 FROM \"Campus\" c LEFT JOIN \"Destination\" l ON l.\"code\" = c.\"code\" WHERE l.\"id\" IS NULL)\n            OR EXISTS (\n              SELECT required.\"code\" FROM (VALUES ('FIN'), ('MAIN'), ('HIT'), ('STATION'), ('TRN'), ('ADA'), ('CHI'), ('JIJ')) AS required(\"code\")\n              WHERE NOT EXISTS (SELECT 1 FROM \"Destination\" l WHERE l.\"code\" = required.\"code\")\n            )\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'FIN' AND (\"name\" <> 'Finfinne' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'MAIN' AND (\"name\" <> 'Main Campus' OR \"kind\" <> 'CAMPUS'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'HIT' AND (\"name\" <> 'HIT' OR \"kind\" <> 'CAMPUS'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'STATION' AND (\"name\" <> 'Station' OR \"kind\" <> 'CAMPUS'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'TRN' AND (\"name\" <> 'Train Station' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'ADA' AND (\"name\" <> 'Adama' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'CHI' AND (\"name\" <> 'Chiro' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'JIJ' AND (\"name\" <> 'Jijiga' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (\n              SELECT required.\"code\" FROM (VALUES ('SENIOR_STUDENT_ARRIVAL'), ('FRESH_STUDENT_ARRIVAL'), ('SENIOR_BREAK_DEPARTURE'), ('FRESH_BREAK_DEPARTURE'), ('SENIOR_BREAK_RETURN'), ('FRESH_BREAK_RETURN'), ('HOME_TOWN_DEPARTURE'), ('TRAIN_ARRIVAL_CAMPUS'), ('CAMPUS_TRAIN_STATION'), ('SPECIAL_EVENT')) AS required(\"code\")\n              WHERE NOT EXISTS (SELECT 1 FROM \"TripPurpose\" p WHERE p.\"code\" = required.\"code\")\n            )\n            OR EXISTS (SELECT 1 FROM \"Route\" r JOIN \"Campus\" c ON c.\"id\" = r.\"originLocationId\" JOIN \"Destination\" l ON l.\"code\" = c.\"code\" WHERE r.\"originLocationId\" <> l.\"id\")\n            OR EXISTS (SELECT 1 FROM \"Trip\" t JOIN \"Campus\" c ON c.\"id\" = t.\"originLocationId\" JOIN \"Destination\" l ON l.\"code\" = c.\"code\" WHERE t.\"originLocationId\" <> l.\"id\")\n            OR EXISTS (SELECT 1 FROM \"DemandRequest\" WHERE \"destinationLocationId\" IS NULL)\n        ) AS ok",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "Run backfill-DemandRequest-destinationLocationId",
+        "sql": "\n            INSERT INTO \"Destination\" (\"id\", \"name\", \"code\", \"kind\", \"isActive\", \"createdAt\", \"updatedAt\")\n            SELECT\n              CASE\n                WHEN EXISTS (SELECT 1 FROM \"Destination\" existing WHERE existing.\"id\" = c.\"id\")\n                  THEN gen_random_uuid()::text\n                ELSE c.\"id\"\n              END,\n              c.\"name\",\n              c.\"code\",\n              'CAMPUS',\n              c.\"isActive\",\n              c.\"createdAt\",\n              c.\"updatedAt\"\n            FROM \"Campus\" c\n            WHERE NOT EXISTS (SELECT 1 FROM \"Destination\" l WHERE l.\"code\" = c.\"code\")\n            ON CONFLICT (\"code\") DO NOTHING\n          ",
+        "params": []
+      },
+      {
+        "description": "Run backfill-DemandRequest-destinationLocationId",
+        "sql": "\n            UPDATE \"Destination\" d\n            SET\n              \"name\" = CASE WHEN c.\"updatedAt\" > d.\"updatedAt\" THEN c.\"name\" ELSE d.\"name\" END,\n              \"isActive\" = d.\"isActive\" AND c.\"isActive\",\n              \"createdAt\" = LEAST(d.\"createdAt\", c.\"createdAt\"),\n              \"updatedAt\" = GREATEST(d.\"updatedAt\", c.\"updatedAt\")\n            FROM \"Campus\" c\n            WHERE d.\"code\" = c.\"code\"\n          ",
+        "params": []
+      },
+      {
+        "description": "Run backfill-DemandRequest-destinationLocationId",
+        "sql": "\n            INSERT INTO \"Destination\" (\"id\", \"name\", \"code\", \"kind\", \"isActive\", \"createdAt\", \"updatedAt\") VALUES\n              ('00000000-0000-7000-8000-000000000001', 'Finfinne', 'FIN', 'EXTERNAL', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000002', 'Main Campus', 'MAIN', 'CAMPUS', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000003', 'HIT', 'HIT', 'CAMPUS', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000004', 'Station', 'STATION', 'CAMPUS', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000005', 'Train Station', 'TRN', 'EXTERNAL', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000006', 'Adama', 'ADA', 'EXTERNAL', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000007', 'Chiro', 'CHI', 'EXTERNAL', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000008', 'Jijiga', 'JIJ', 'EXTERNAL', TRUE, now(), now())\n            ON CONFLICT (\"code\") DO UPDATE SET\n              \"name\" = EXCLUDED.\"name\",\n              \"kind\" = EXCLUDED.\"kind\"\n          ",
+        "params": []
+      },
+      {
+        "description": "Run backfill-DemandRequest-destinationLocationId",
+        "sql": "\n            INSERT INTO \"TripPurpose\" (\"id\", \"code\", \"name\", \"description\", \"isActive\", \"createdAt\", \"updatedAt\") VALUES\n              ('00000000-0000-7000-8000-000000000101', 'SENIOR_STUDENT_ARRIVAL', 'Senior Student Arrival', 'Senior students coming from another area to campus.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000102', 'FRESH_STUDENT_ARRIVAL', 'Fresh Student Arrival', 'Fresh or new students coming from another area to campus.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000103', 'SENIOR_BREAK_DEPARTURE', 'Senior Student Break Departure', 'Senior students leaving campus at the beginning of a break.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000104', 'FRESH_BREAK_DEPARTURE', 'Fresh Student Break Departure', 'Fresh students leaving campus at the beginning of a break.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000105', 'SENIOR_BREAK_RETURN', 'Senior Student Break Return', 'Senior students returning from break to campus.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000106', 'FRESH_BREAK_RETURN', 'Fresh Student Break Return', 'Fresh students returning from break to campus.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000107', 'HOME_TOWN_DEPARTURE', 'Home-Town Departure', 'Campus to a home town or another area when students travel home.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000108', 'TRAIN_ARRIVAL_CAMPUS', 'Train Arrival → Campus', 'Passengers arriving at the Train Station and travelling to campus.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000109', 'CAMPUS_TRAIN_STATION', 'Campus → Train Station', 'Passengers leaving campus to travel to the Train Station.', TRUE, now(), now()),\n              ('00000000-0000-7000-8000-000000000110', 'SPECIAL_EVENT', 'Special / Event Trip', 'Graduation, special university events, exceptional demand, or other Admin-approved transportation.', TRUE, now(), now())\n            ON CONFLICT (\"id\") DO NOTHING\n          ",
+        "params": []
+      },
+      {
+        "description": "Run backfill-DemandRequest-destinationLocationId",
+        "sql": "\n            UPDATE \"Route\" r SET \"originLocationId\" = l.\"id\"\n            FROM \"Campus\" c JOIN \"Destination\" l ON l.\"code\" = c.\"code\"\n            WHERE r.\"originLocationId\" = c.\"id\" AND r.\"originLocationId\" <> l.\"id\"\n          ",
+        "params": []
+      },
+      {
+        "description": "Run backfill-DemandRequest-destinationLocationId",
+        "sql": "\n            UPDATE \"Trip\" t SET \"originLocationId\" = l.\"id\"\n            FROM \"Campus\" c JOIN \"Destination\" l ON l.\"code\" = c.\"code\"\n            WHERE t.\"originLocationId\" = c.\"id\" AND t.\"originLocationId\" <> l.\"id\"\n          ",
+        "params": []
+      },
+      {
+        "description": "Run backfill-DemandRequest-destinationLocationId",
+        "sql": "\n            UPDATE \"DemandRequest\" d SET \"destinationLocationId\" = r.\"destinationLocationId\"\n            FROM \"Route\" r\n            WHERE d.\"routeId\" = r.\"id\" AND d.\"destinationLocationId\" IS NULL\n          ",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "Verify backfill-DemandRequest-destinationLocationId resolved all violations",
+        "sql": "SELECT NOT EXISTS (\n          SELECT 'pending'::text AS \"code\"\n          WHERE\n            EXISTS (SELECT 1 FROM \"Campus\" c LEFT JOIN \"Destination\" l ON l.\"code\" = c.\"code\" WHERE l.\"id\" IS NULL)\n            OR EXISTS (\n              SELECT required.\"code\" FROM (VALUES ('FIN'), ('MAIN'), ('HIT'), ('STATION'), ('TRN'), ('ADA'), ('CHI'), ('JIJ')) AS required(\"code\")\n              WHERE NOT EXISTS (SELECT 1 FROM \"Destination\" l WHERE l.\"code\" = required.\"code\")\n            )\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'FIN' AND (\"name\" <> 'Finfinne' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'MAIN' AND (\"name\" <> 'Main Campus' OR \"kind\" <> 'CAMPUS'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'HIT' AND (\"name\" <> 'HIT' OR \"kind\" <> 'CAMPUS'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'STATION' AND (\"name\" <> 'Station' OR \"kind\" <> 'CAMPUS'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'TRN' AND (\"name\" <> 'Train Station' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'ADA' AND (\"name\" <> 'Adama' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'CHI' AND (\"name\" <> 'Chiro' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (SELECT 1 FROM \"Destination\" WHERE \"code\" = 'JIJ' AND (\"name\" <> 'Jijiga' OR \"kind\" <> 'EXTERNAL'))\n            OR EXISTS (\n              SELECT required.\"code\" FROM (VALUES ('SENIOR_STUDENT_ARRIVAL'), ('FRESH_STUDENT_ARRIVAL'), ('SENIOR_BREAK_DEPARTURE'), ('FRESH_BREAK_DEPARTURE'), ('SENIOR_BREAK_RETURN'), ('FRESH_BREAK_RETURN'), ('HOME_TOWN_DEPARTURE'), ('TRAIN_ARRIVAL_CAMPUS'), ('CAMPUS_TRAIN_STATION'), ('SPECIAL_EVENT')) AS required(\"code\")\n              WHERE NOT EXISTS (SELECT 1 FROM \"TripPurpose\" p WHERE p.\"code\" = required.\"code\")\n            )\n            OR EXISTS (SELECT 1 FROM \"Route\" r JOIN \"Campus\" c ON c.\"id\" = r.\"originLocationId\" JOIN \"Destination\" l ON l.\"code\" = c.\"code\" WHERE r.\"originLocationId\" <> l.\"id\")\n            OR EXISTS (SELECT 1 FROM \"Trip\" t JOIN \"Campus\" c ON c.\"id\" = t.\"originLocationId\" JOIN \"Destination\" l ON l.\"code\" = c.\"code\" WHERE t.\"originLocationId\" <> l.\"id\")\n            OR EXISTS (SELECT 1 FROM \"DemandRequest\" WHERE \"destinationLocationId\" IS NULL)\n        ) AS ok",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "DemandRequest",
+            "column": "destinationLocationId",
+            "reason": "backfillMissedRows"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropTable.Campus",
+    "label": "Drop table \"Campus\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Campus"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Campus\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Campus\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"Campus\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"Campus\"",
+        "sql": "DROP TABLE \"public\".\"Campus\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Campus\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Campus\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"Campus\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.DemandRequest.destinationLocationId",
+    "label": "Set NOT NULL on \"DemandRequest\".\"destinationLocationId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "destinationLocationId",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"destinationLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "destinationLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"destinationLocationId\" on \"DemandRequest\""
+        }
+      },
+      {
+        "description": "ensure no NULL values in \"destinationLocationId\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"DemandRequest\" WHERE \"destinationLocationId\" IS NULL) AS \"result\"",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "DemandRequest",
+            "column": "destinationLocationId",
+            "reason": "nullValues"
+          }
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"destinationLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"DemandRequest\" ALTER COLUMN \"destinationLocationId\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"destinationLocationId\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "destinationLocationId",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.DemandRequest.originLocationId",
+    "label": "Add column \"originLocationId\" to \"DemandRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "originLocationId",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"originLocationId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "originLocationId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"originLocationId\" on \"DemandRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"originLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"DemandRequest\" ADD COLUMN \"originLocationId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"originLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "originLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"originLocationId\" on \"DemandRequest\""
+        }
+      },
+      {
+        "description": "verify column \"originLocationId\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "originLocationId",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data_migration.backfill-DemandRequest-originLocationId",
+    "label": "Data transform: backfill-DemandRequest-originLocationId",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "originLocationId",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "Check backfill-DemandRequest-originLocationId has work to do",
+        "sql": "SELECT EXISTS (\n          SELECT 'pending'::text AS \"code\" WHERE EXISTS (SELECT 1 FROM \"DemandRequest\" WHERE \"originLocationId\" IS NULL)\n        ) AS ok",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "Run backfill-DemandRequest-originLocationId",
+        "sql": "\n          UPDATE \"DemandRequest\" d SET \"originLocationId\" = r.\"originLocationId\"\n          FROM \"Route\" r WHERE d.\"routeId\" = r.\"id\" AND d.\"originLocationId\" IS NULL\n        ",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "Verify backfill-DemandRequest-originLocationId resolved all violations",
+        "sql": "SELECT NOT EXISTS (\n          SELECT 'pending'::text AS \"code\" WHERE EXISTS (SELECT 1 FROM \"DemandRequest\" WHERE \"originLocationId\" IS NULL)\n        ) AS ok",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "DemandRequest",
+            "column": "originLocationId",
+            "reason": "backfillMissedRows"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.DemandRequest.originLocationId",
+    "label": "Set NOT NULL on \"DemandRequest\".\"originLocationId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "originLocationId",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"originLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "originLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"originLocationId\" on \"DemandRequest\""
+        }
+      },
+      {
+        "description": "ensure no NULL values in \"originLocationId\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"DemandRequest\" WHERE \"originLocationId\" IS NULL) AS \"result\"",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "DemandRequest",
+            "column": "originLocationId",
+            "reason": "nullValues"
+          }
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"originLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"DemandRequest\" ALTER COLUMN \"originLocationId\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"originLocationId\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "originLocationId",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Trip.destinationLocationId",
+    "label": "Add column \"destinationLocationId\" to \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "destinationLocationId",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"destinationLocationId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "destinationLocationId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"destinationLocationId\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"destinationLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" ADD COLUMN \"destinationLocationId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"destinationLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "destinationLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"destinationLocationId\" on \"Trip\""
+        }
+      },
+      {
+        "description": "verify column \"destinationLocationId\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "destinationLocationId",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data_migration.backfill-Trip-destinationLocationId",
+    "label": "Data transform: backfill-Trip-destinationLocationId",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "destinationLocationId",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "Check backfill-Trip-destinationLocationId has work to do",
+        "sql": "SELECT EXISTS (\n          SELECT 'pending'::text AS \"code\" WHERE EXISTS (SELECT 1 FROM \"Trip\" WHERE \"destinationLocationId\" IS NULL)\n        ) AS ok",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "Run backfill-Trip-destinationLocationId",
+        "sql": "\n          UPDATE \"Trip\" t SET \"destinationLocationId\" = r.\"destinationLocationId\"\n          FROM \"Route\" r WHERE t.\"routeId\" = r.\"id\" AND t.\"destinationLocationId\" IS NULL\n        ",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "Verify backfill-Trip-destinationLocationId resolved all violations",
+        "sql": "SELECT NOT EXISTS (\n          SELECT 'pending'::text AS \"code\" WHERE EXISTS (SELECT 1 FROM \"Trip\" WHERE \"destinationLocationId\" IS NULL)\n        ) AS ok",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "Trip",
+            "column": "destinationLocationId",
+            "reason": "backfillMissedRows"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.Trip.destinationLocationId",
+    "label": "Set NOT NULL on \"Trip\".\"destinationLocationId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "destinationLocationId",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"destinationLocationId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "destinationLocationId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"destinationLocationId\" on \"Trip\""
+        }
+      },
+      {
+        "description": "ensure no NULL values in \"destinationLocationId\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"Trip\" WHERE \"destinationLocationId\" IS NULL) AS \"result\"",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "Trip",
+            "column": "destinationLocationId",
+            "reason": "nullValues"
+          }
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"destinationLocationId\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" ALTER COLUMN \"destinationLocationId\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"destinationLocationId\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "destinationLocationId",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Trip.purposeId",
+    "label": "Add column \"purposeId\" to \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "purposeId",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"purposeId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "purposeId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"purposeId\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"purposeId\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" ADD COLUMN \"purposeId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"purposeId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "purposeId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"purposeId\" on \"Trip\""
+        }
+      },
+      {
+        "description": "verify column \"purposeId\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "purposeId",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data_migration.backfill-Trip-purposeId",
+    "label": "Data transform: backfill-Trip-purposeId",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "purposeId",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "Check backfill-Trip-purposeId has work to do",
+        "sql": "SELECT EXISTS (\n          SELECT 'pending'::text AS \"code\" WHERE EXISTS (SELECT 1 FROM \"Trip\" WHERE \"purposeId\" IS NULL)\n        ) AS ok",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "Run backfill-Trip-purposeId",
+        "sql": "\n          UPDATE \"Trip\" SET \"purposeId\" = '00000000-0000-7000-8000-000000000110' WHERE \"purposeId\" IS NULL\n        ",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "Verify backfill-Trip-purposeId resolved all violations",
+        "sql": "SELECT NOT EXISTS (\n          SELECT 'pending'::text AS \"code\" WHERE EXISTS (SELECT 1 FROM \"Trip\" WHERE \"purposeId\" IS NULL)\n        ) AS ok",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "Trip",
+            "column": "purposeId",
+            "reason": "backfillMissedRows"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.Trip.purposeId",
+    "label": "Set NOT NULL on \"Trip\".\"purposeId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "purposeId",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"purposeId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "purposeId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"purposeId\" on \"Trip\""
+        }
+      },
+      {
+        "description": "ensure no NULL values in \"purposeId\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"Trip\" WHERE \"purposeId\" IS NULL) AS \"result\"",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "Trip",
+            "column": "purposeId",
+            "reason": "nullValues"
+          }
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"purposeId\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" ALTER COLUMN \"purposeId\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"purposeId\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "purposeId",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.dropNotNull.DemandRequest.routeId",
+    "label": "Drop NOT NULL on \"DemandRequest\".\"routeId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "routeId",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"routeId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "routeId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"routeId\" on \"DemandRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop NOT NULL on \"routeId\"",
+        "sql": "ALTER TABLE \"public\".\"DemandRequest\" ALTER COLUMN \"routeId\" DROP NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"routeId\" is nullable",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "DemandRequest",
+          "routeId",
+          "YES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.dropNotNull.Trip.routeId",
+    "label": "Drop NOT NULL on \"Trip\".\"routeId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "routeId",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"routeId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "routeId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"routeId\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop NOT NULL on \"routeId\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" ALTER COLUMN \"routeId\" DROP NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"routeId\" is nullable",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Trip",
+          "routeId",
+          "YES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Destination.Destination_kind_check_dabea381",
+    "label": "Add check constraint \"Destination_kind_check_dabea381\" on \"Destination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Destination_kind_check_dabea381",
+        "table": "Destination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Destination_kind_check_dabea381\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Destination_kind_check_dabea381",
+          "public",
+          "\"public\".\"Destination\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Destination_kind_check_dabea381\" on \"Destination\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Destination_kind_check_dabea381\"",
+        "sql": "ALTER TABLE \"public\".\"Destination\" ADD CONSTRAINT \"Destination_kind_check_dabea381\" CHECK (\"kind\" IN ('CAMPUS', 'EXTERNAL'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Destination_kind_check_dabea381\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Destination_kind_check_dabea381",
+          "public",
+          "\"public\".\"Destination\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.TripPurpose.TripPurpose_code_key",
+    "label": "Add unique constraint on \"TripPurpose\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "TripPurpose_code_key",
+        "table": "TripPurpose"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"TripPurpose_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "TripPurpose_code_key",
+          "public",
+          "\"public\".\"TripPurpose\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"TripPurpose_code_key\" on \"TripPurpose\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"TripPurpose_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"TripPurpose\" ADD CONSTRAINT \"TripPurpose_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"TripPurpose_code_key\" exists on (code)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "TripPurpose_code_key",
+          "public",
+          "\"public\".\"TripPurpose\"",
+          "u",
+          "[\"code\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DemandRequest.DemandRequest_destinationLocationId_idx_307b052b",
+    "label": "Create index \"DemandRequest_destinationLocationId_idx_307b052b\" on \"DemandRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DemandRequest_destinationLocationId_idx_307b052b",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DemandRequest_destinationLocationId_idx_307b052b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DemandRequest_destinationLocationId_idx_307b052b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DemandRequest_destinationLocationId_idx_307b052b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DemandRequest_destinationLocationId_idx_307b052b\"",
+        "sql": "CREATE INDEX \"DemandRequest_destinationLocationId_idx_307b052b\" ON \"public\".\"DemandRequest\" (\"destinationLocationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DemandRequest_destinationLocationId_idx_307b052b\" exists on \"DemandRequest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DemandRequest_destinationLocationId_idx_307b052b\"",
+          "i",
+          "I",
+          "\"public\".\"DemandRequest\"",
+          "btree",
+          "[\"destinationLocationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DemandRequest.DemandRequest_originLocationId_idx_e5686e06",
+    "label": "Create index \"DemandRequest_originLocationId_idx_e5686e06\" on \"DemandRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DemandRequest_originLocationId_idx_e5686e06",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DemandRequest_originLocationId_idx_e5686e06\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DemandRequest_originLocationId_idx_e5686e06\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DemandRequest_originLocationId_idx_e5686e06\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DemandRequest_originLocationId_idx_e5686e06\"",
+        "sql": "CREATE INDEX \"DemandRequest_originLocationId_idx_e5686e06\" ON \"public\".\"DemandRequest\" (\"originLocationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DemandRequest_originLocationId_idx_e5686e06\" exists on \"DemandRequest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DemandRequest_originLocationId_idx_e5686e06\"",
+          "i",
+          "I",
+          "\"public\".\"DemandRequest\"",
+          "btree",
+          "[\"originLocationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DemandRequest.demand_location_date_0975cc9f",
+    "label": "Create index \"demand_location_date_0975cc9f\" on \"DemandRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "demand_location_date_0975cc9f",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"demand_location_date_0975cc9f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"demand_location_date_0975cc9f\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"demand_location_date_0975cc9f\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"demand_location_date_0975cc9f\"",
+        "sql": "CREATE INDEX \"demand_location_date_0975cc9f\" ON \"public\".\"DemandRequest\" (\"originLocationId\", \"destinationLocationId\", \"travelDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"demand_location_date_0975cc9f\" exists on \"DemandRequest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"demand_location_date_0975cc9f\"",
+          "i",
+          "I",
+          "\"public\".\"DemandRequest\"",
+          "btree",
+          "[\"originLocationId\",\"destinationLocationId\",\"travelDate\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Trip.Trip_destinationLocationId_idx_307b052b",
+    "label": "Create index \"Trip_destinationLocationId_idx_307b052b\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Trip_destinationLocationId_idx_307b052b",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Trip_destinationLocationId_idx_307b052b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_destinationLocationId_idx_307b052b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Trip_destinationLocationId_idx_307b052b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Trip_destinationLocationId_idx_307b052b\"",
+        "sql": "CREATE INDEX \"Trip_destinationLocationId_idx_307b052b\" ON \"public\".\"Trip\" (\"destinationLocationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Trip_destinationLocationId_idx_307b052b\" exists on \"Trip\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_destinationLocationId_idx_307b052b\"",
+          "i",
+          "I",
+          "\"public\".\"Trip\"",
+          "btree",
+          "[\"destinationLocationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Trip.Trip_originLocationId_destinationLocationId_idx_3ddde4f7",
+    "label": "Create index \"Trip_originLocationId_destinationLocationId_idx_3ddde4f7\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Trip_originLocationId_destinationLocationId_idx_3ddde4f7",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Trip_originLocationId_destinationLocationId_idx_3ddde4f7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_originLocationId_destinationLocationId_idx_3ddde4f7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Trip_originLocationId_destinationLocationId_idx_3ddde4f7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Trip_originLocationId_destinationLocationId_idx_3ddde4f7\"",
+        "sql": "CREATE INDEX \"Trip_originLocationId_destinationLocationId_idx_3ddde4f7\" ON \"public\".\"Trip\" (\"originLocationId\", \"destinationLocationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Trip_originLocationId_destinationLocationId_idx_3ddde4f7\" exists on \"Trip\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_originLocationId_destinationLocationId_idx_3ddde4f7\"",
+          "i",
+          "I",
+          "\"public\".\"Trip\"",
+          "btree",
+          "[\"originLocationId\",\"destinationLocationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Trip.Trip_purposeId_idx_6b9d8485",
+    "label": "Create index \"Trip_purposeId_idx_6b9d8485\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Trip_purposeId_idx_6b9d8485",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Trip_purposeId_idx_6b9d8485\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_purposeId_idx_6b9d8485\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Trip_purposeId_idx_6b9d8485\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Trip_purposeId_idx_6b9d8485\"",
+        "sql": "CREATE INDEX \"Trip_purposeId_idx_6b9d8485\" ON \"public\".\"Trip\" (\"purposeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Trip_purposeId_idx_6b9d8485\" exists on \"Trip\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Trip_purposeId_idx_6b9d8485\"",
+          "i",
+          "I",
+          "\"public\".\"Trip\"",
+          "btree",
+          "[\"purposeId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.DemandRequest.DemandRequest_destinationLocationId_fkey",
+    "label": "Add foreign key \"DemandRequest_destinationLocationId_fkey\" on \"DemandRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "DemandRequest_destinationLocationId_fkey",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"DemandRequest_destinationLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "DemandRequest_destinationLocationId_fkey",
+          "public",
+          "\"public\".\"DemandRequest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"DemandRequest_destinationLocationId_fkey\" on \"DemandRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"DemandRequest_destinationLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"DemandRequest\"\nADD CONSTRAINT \"DemandRequest_destinationLocationId_fkey\"\nFOREIGN KEY (\"destinationLocationId\")\nREFERENCES \"public\".\"Destination\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"DemandRequest_destinationLocationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "DemandRequest_destinationLocationId_fkey",
+          "public",
+          "\"public\".\"DemandRequest\"",
+          "f",
+          "[\"destinationLocationId\"]",
+          "\"public\".\"Destination\"",
+          "[\"id\"]",
+          "r",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.DemandRequest.DemandRequest_originLocationId_fkey",
+    "label": "Add foreign key \"DemandRequest_originLocationId_fkey\" on \"DemandRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "DemandRequest_originLocationId_fkey",
+        "table": "DemandRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"DemandRequest_originLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "DemandRequest_originLocationId_fkey",
+          "public",
+          "\"public\".\"DemandRequest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"DemandRequest_originLocationId_fkey\" on \"DemandRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"DemandRequest_originLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"DemandRequest\"\nADD CONSTRAINT \"DemandRequest_originLocationId_fkey\"\nFOREIGN KEY (\"originLocationId\")\nREFERENCES \"public\".\"Destination\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"DemandRequest_originLocationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "DemandRequest_originLocationId_fkey",
+          "public",
+          "\"public\".\"DemandRequest\"",
+          "f",
+          "[\"originLocationId\"]",
+          "\"public\".\"Destination\"",
+          "[\"id\"]",
+          "r",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Route.Route_originLocationId_fkey",
+    "label": "Add foreign key \"Route_originLocationId_fkey\" on \"Route\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Route_originLocationId_fkey",
+        "table": "Route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Route_originLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Route_originLocationId_fkey",
+          "public",
+          "\"public\".\"Route\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"Route_originLocationId_fkey\" on \"Route\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Route_originLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Route\"\nADD CONSTRAINT \"Route_originLocationId_fkey\"\nFOREIGN KEY (\"originLocationId\")\nREFERENCES \"public\".\"Destination\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Route_originLocationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "Route_originLocationId_fkey",
+          "public",
+          "\"public\".\"Route\"",
+          "f",
+          "[\"originLocationId\"]",
+          "\"public\".\"Destination\"",
+          "[\"id\"]",
+          "r",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Trip.Trip_destinationLocationId_fkey",
+    "label": "Add foreign key \"Trip_destinationLocationId_fkey\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Trip_destinationLocationId_fkey",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Trip_destinationLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_destinationLocationId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"Trip_destinationLocationId_fkey\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Trip_destinationLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\"\nADD CONSTRAINT \"Trip_destinationLocationId_fkey\"\nFOREIGN KEY (\"destinationLocationId\")\nREFERENCES \"public\".\"Destination\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Trip_destinationLocationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "Trip_destinationLocationId_fkey",
+          "public",
+          "\"public\".\"Trip\"",
+          "f",
+          "[\"destinationLocationId\"]",
+          "\"public\".\"Destination\"",
+          "[\"id\"]",
+          "r",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Trip.Trip_originLocationId_fkey",
+    "label": "Add foreign key \"Trip_originLocationId_fkey\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Trip_originLocationId_fkey",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Trip_originLocationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_originLocationId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"Trip_originLocationId_fkey\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Trip_originLocationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\"\nADD CONSTRAINT \"Trip_originLocationId_fkey\"\nFOREIGN KEY (\"originLocationId\")\nREFERENCES \"public\".\"Destination\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Trip_originLocationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "Trip_originLocationId_fkey",
+          "public",
+          "\"public\".\"Trip\"",
+          "f",
+          "[\"originLocationId\"]",
+          "\"public\".\"Destination\"",
+          "[\"id\"]",
+          "r",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Trip.Trip_purposeId_fkey",
+    "label": "Add foreign key \"Trip_purposeId_fkey\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Trip_purposeId_fkey",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Trip_purposeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_purposeId_fkey",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"Trip_purposeId_fkey\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Trip_purposeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\"\nADD CONSTRAINT \"Trip_purposeId_fkey\"\nFOREIGN KEY (\"purposeId\")\nREFERENCES \"public\".\"TripPurpose\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Trip_purposeId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "Trip_purposeId_fkey",
+          "public",
+          "\"public\".\"Trip\"",
+          "f",
+          "[\"purposeId\"]",
+          "\"public\".\"TripPurpose\"",
+          "[\"id\"]",
+          "r",
+          "a"
+        ]
+      }
+    ]
+  }
+]

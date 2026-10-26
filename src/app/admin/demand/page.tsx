@@ -1,179 +1,124 @@
+import Link from "next/link";
 import { DataTable, EmptyState, PageHeader, StatusBadge } from "@/components/ui";
-import { requireRole } from "@/lib/auth";
+import { requireRoleAt } from "@/lib/auth";
 import { orm } from "@/lib/db";
 import { formatDate, formatDateTime, requiredVehicles } from "@/lib/format";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDemandPage() {
-  await requireRole("ADMIN");
+  await requireRoleAt("/admin/demand", "ADMIN");
 
-  // Fetch all open demand requests with related route, origin campus, and destination
   const openDemands = await orm.DemandRequest.where({ status: "OPEN" })
-    .include("route", (r) => r.include("originCampus").include("destination"))
+    .include("originLocation")
+    .include("destinationLocation")
     .include("event")
     .include("account")
-    .orderBy((d) => d.travelDate.asc())
+    .orderBy((demand) => demand.travelDate.asc())
     .all();
 
-  // Aggregate by routeId + travelDate
   type AggregatedDemand = {
     key: string;
-    routeId: string;
-    routeName: string;
-    originCampusName: string;
+    originLocationId: string;
+    destinationLocationId: string;
+    originName: string;
     destinationName: string;
     travelDate: string;
     eventName: string | null;
     totalPassengers: number;
     requestCount: number;
-    demandIds: string[];
   };
 
-  const aggregationMap = new Map<string, AggregatedDemand>();
-
-  for (const d of openDemands) {
-    const key = `${d.routeId}_${d.travelDate}`;
-    const existing = aggregationMap.get(key);
-    if (existing) {
-      existing.totalPassengers += d.passengerCount;
-      existing.requestCount += 1;
-      existing.demandIds.push(d.id);
+  const demandByService = new Map<string, AggregatedDemand>();
+  for (const demand of openDemands) {
+    const key = `${demand.originLocationId}_${demand.destinationLocationId}_${demand.travelDate}`;
+    const current = demandByService.get(key);
+    if (current) {
+      current.totalPassengers += demand.passengerCount;
+      current.requestCount += 1;
     } else {
-      aggregationMap.set(key, {
+      demandByService.set(key, {
         key,
-        routeId: d.routeId,
-        routeName: d.route?.name ?? "Route",
-        originCampusName: d.route?.originCampus?.name ?? "Origin",
-        destinationName: d.route?.destination?.name ?? "Destination",
-        travelDate: d.travelDate,
-        eventName: d.event?.name ?? null,
-        totalPassengers: d.passengerCount,
+        originLocationId: demand.originLocationId,
+        destinationLocationId: demand.destinationLocationId,
+        originName: demand.originLocation.name,
+        destinationName: demand.destinationLocation.name,
+        travelDate: demand.travelDate,
+        eventName: demand.event?.name ?? null,
+        totalPassengers: demand.passengerCount,
         requestCount: 1,
-        demandIds: [d.id],
       });
     }
   }
 
-  const aggregatedList = Array.from(aggregationMap.values()).sort(
+  const aggregatedList = Array.from(demandByService.values()).sort(
     (a, b) => b.totalPassengers - a.totalPassengers,
   );
-
-  // Standard university bus capacity is 60 seats (Higer/Yutong standard)
-  const STANDARD_BUS_CAPACITY = 60;
-  const COASTER_CAPACITY = 30;
+  const busCapacity = 60;
+  const coasterCapacity = 30;
 
   return (
     <div className="space-y-8">
       <PageHeader
         title="Travel Demand Planning & Capacity Recommendation"
-        description="Passenger travel demand aggregation. The system calculates required seating capacity and recommends the number of vehicles to dispatch for each date."
+        description="Demand is grouped by origin, destination, and date. Recommendations support staff planning and never publish trips automatically."
       />
 
-      {/* Capacity Recommendation Table */}
-      <div className="space-y-4">
+      <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold tracking-tight text-zinc-950">
-            System Vehicle Recommendations
-          </h2>
-          <p className="text-xs text-zinc-600">
-            Based on aggregated open travel requests. Recommendations suggest vehicle fleet allocation without auto-publishing trips.
-          </p>
+          <h2 className="text-base font-semibold tracking-tight text-zinc-950">Suggested Vehicle Capacity</h2>
+          <p className="text-xs text-zinc-600">Recommendations use open passenger requests for each location pair and travel date.</p>
         </div>
-
         {aggregatedList.length === 0 ? (
-          <EmptyState
-            title="No open travel demand requests"
-            body="When travelers request travel on routes before trips are published, demand recommendations will appear here."
-          />
+          <EmptyState title="No open travel demand requests" body="When travelers request a service without a published trip, planning recommendations appear here." />
         ) : (
-          <DataTable
-            headers={[
-              "Route",
-              "Target Date",
-              "Associated Event",
-              "Total Passengers",
-              "Requests",
-              "Recommended Fleet",
-              "Action",
-            ]}
-          >
+          <DataTable headers={["From → Destination", "Target Date", "Event", "Passengers", "Requests", "Suggested Fleet", "Action"]}>
             {aggregatedList.map((item) => {
-              const busesNeeded = requiredVehicles(item.totalPassengers, STANDARD_BUS_CAPACITY);
-              const coastersNeeded = requiredVehicles(item.totalPassengers, COASTER_CAPACITY);
-
+              const busesNeeded = requiredVehicles(item.totalPassengers, busCapacity);
+              const coastersNeeded = requiredVehicles(item.totalPassengers, coasterCapacity);
+              const scheduleHref = `/admin/trips?create=true&fromLocationId=${encodeURIComponent(item.originLocationId)}&toLocationId=${encodeURIComponent(item.destinationLocationId)}&departureDate=${encodeURIComponent(item.travelDate)}`;
               return (
                 <tr key={item.key}>
-                  <td className="px-4 py-3 font-medium text-zinc-950">
-                    <p>{item.routeName}</p>
-                    <p className="text-xs text-zinc-500">
-                      {item.originCampusName} → {item.destinationName}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-900 font-semibold">{formatDate(item.travelDate)}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-600">{item.eventName ?? "General Travel"}</td>
+                  <td className="px-4 py-3 font-medium text-zinc-950">{item.originName} → {item.destinationName}</td>
+                  <td className="px-4 py-3 font-semibold text-zinc-900">{formatDate(item.travelDate)}</td>
+                  <td className="px-4 py-3 text-xs text-zinc-600">{item.eventName ?? "General travel"}</td>
+                  <td className="px-4 py-3 font-mono font-bold text-zinc-950">{item.totalPassengers}</td>
+                  <td className="px-4 py-3 text-xs text-zinc-600">{item.requestCount}</td>
                   <td className="px-4 py-3">
-                    <span className="font-mono text-base font-bold text-zinc-950">
-                      {item.totalPassengers}
-                    </span>{" "}
-                    <span className="text-xs text-zinc-500">passengers</span>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-zinc-600">
-                    {item.requestCount} submission{item.requestCount === 1 ? "" : "s"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="space-y-1">
-                      <StatusBadge tone="success">
-                        <strong>{busesNeeded}</strong> × 60-seat Bus{busesNeeded === 1 ? "" : "es"}
-                      </StatusBadge>
-                      <p className="text-[11px] text-zinc-500">
-                        or {coastersNeeded} × 30-seat Coaster{coastersNeeded === 1 ? "" : "s"}
-                      </p>
-                    </div>
+                    <StatusBadge tone="success">{busesNeeded} × {busCapacity}-seat bus{busesNeeded === 1 ? "" : "es"}</StatusBadge>
+                    <p className="mt-1 text-[11px] text-zinc-500">or {coastersNeeded} × {coasterCapacity}-seat coaster{coastersNeeded === 1 ? "" : "s"}</p>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/admin/trips?new=1&routeId=${item.routeId}&departureDate=${item.travelDate}`}
-                      className="bg-zinc-950 text-white px-3 py-1.5 text-xs font-medium hover:bg-zinc-800"
-                    >
-                      Schedule Trip →
-                    </Link>
+                    <Link href={scheduleHref} className="inline-flex bg-zinc-950 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800">Review trip →</Link>
                   </td>
                 </tr>
               );
             })}
           </DataTable>
         )}
-      </div>
+      </section>
 
-      {/* Individual Request Log */}
-      <div className="space-y-4 pt-6 border-t border-zinc-200">
+      <section className="space-y-4 border-t border-zinc-200 pt-6">
         <div>
-          <h2 className="text-base font-semibold tracking-tight text-zinc-950">
-            Individual Demand Submissions ({openDemands.length})
-          </h2>
-          <p className="text-xs text-zinc-600">
-            Raw requests submitted by registered accounts.
-          </p>
+          <h2 className="text-base font-semibold tracking-tight text-zinc-950">Individual Demand Submissions ({openDemands.length})</h2>
+          <p className="text-xs text-zinc-600">Submitted travel requests grouped into the recommendations above.</p>
         </div>
-
-        <DataTable headers={["Traveler", "Route", "Date", "Party Size", "Note", "Submitted Date"]}>
-          {openDemands.map((d) => (
-            <tr key={d.id}>
+        <DataTable headers={["Traveler", "From → Destination", "Date", "Party Size", "Note", "Submitted"]}>
+          {openDemands.map((demand) => (
+            <tr key={demand.id}>
               <td className="px-4 py-3 text-xs">
-                <p className="font-medium text-zinc-950">{d.account.fullName}</p>
-                <p className="text-zinc-500">{d.account.email}</p>
+                <p className="font-medium text-zinc-950">{demand.account.fullName}</p>
+                <p className="text-zinc-500">{demand.account.email}</p>
               </td>
-              <td className="px-4 py-3 text-xs font-medium">{d.route?.name}</td>
-              <td className="px-4 py-3 text-xs">{formatDate(d.travelDate)}</td>
-              <td className="px-4 py-3 text-xs font-semibold">{d.passengerCount}</td>
-              <td className="px-4 py-3 text-xs text-zinc-600 max-w-xs truncate">{d.note ?? "—"}</td>
-              <td className="px-4 py-3 text-xs text-zinc-400">{formatDateTime(d.createdAt)}</td>
+              <td className="px-4 py-3 text-xs font-medium">{demand.originLocation.name} → {demand.destinationLocation.name}</td>
+              <td className="px-4 py-3 text-xs">{formatDate(demand.travelDate)}</td>
+              <td className="px-4 py-3 text-xs font-semibold">{demand.passengerCount}</td>
+              <td className="max-w-xs truncate px-4 py-3 text-xs text-zinc-600">{demand.note ?? "—"}</td>
+              <td className="px-4 py-3 text-xs text-zinc-400">{formatDateTime(demand.createdAt)}</td>
             </tr>
           ))}
         </DataTable>
-      </div>
+      </section>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { createSession, destroySession, getCurrentAccount } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { hashPassword, verifyPassword } from "@/lib/crypto";
 import { orm } from "@/lib/db";
+import { safeReturnTo } from "@/lib/return-to";
 import { AppError, formatErrorResponse } from "@/lib/errors";
 
 function readString(formData: FormData, key: string) {
@@ -12,6 +13,8 @@ function readString(formData: FormData, key: string) {
 }
 
 export async function registerAction(_: unknown, formData: FormData) {
+  const returnTo = safeReturnTo(readString(formData, "next"));
+
   try {
     const fullName = readString(formData, "fullName");
     const email = readString(formData, "email").toLowerCase();
@@ -41,10 +44,13 @@ export async function registerAction(_: unknown, formData: FormData) {
     const formatted = formatErrorResponse(error);
     return { error: formatted.error };
   }
-  redirect("/trips");
+
+  redirect(returnTo || "/trips");
 }
 
 export async function loginAction(_: unknown, formData: FormData) {
+  const returnTo = safeReturnTo(readString(formData, "next"));
+
   try {
     const email = readString(formData, "email").toLowerCase();
     const password = String(formData.get("password") ?? "");
@@ -64,6 +70,9 @@ export async function loginAction(_: unknown, formData: FormData) {
     const formatted = formatErrorResponse(error);
     return { error: formatted.error };
   }
+
+  if (returnTo) redirect(returnTo);
+
   const account = await getCurrentAccount();
   if (account?.role === "ADMIN") redirect("/admin");
   if (account?.role === "STAFF") redirect("/staff");

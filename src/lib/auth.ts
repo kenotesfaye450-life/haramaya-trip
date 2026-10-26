@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SESSION_COOKIE, SESSION_TTL_MS, type Role } from "@/lib/constants";
 import { hmac, safeEqual, sha256 } from "@/lib/crypto";
 import { orm } from "@/lib/db";
+import { authPageHref } from "@/lib/return-to";
 
 export type SessionAccount = {
   id: string;
@@ -77,16 +78,24 @@ export async function getCurrentAccount(): Promise<SessionAccount | null> {
   };
 }
 
-export async function requireAccount() {
+export async function requireAccount(returnTo?: string) {
   const account = await getCurrentAccount();
-  if (!account) redirect("/login");
+  if (!account) redirect(authPageHref("login", returnTo));
+  return account;
+}
+
+async function requireRoleFor(returnTo: string | undefined, roles: Role[]) {
+  const account = await requireAccount(returnTo);
+  if (!roles.includes(account.role)) redirect("/");
   return account;
 }
 
 export async function requireRole(...roles: Role[]) {
-  const account = await requireAccount();
-  if (!roles.includes(account.role)) redirect("/");
-  return account;
+  return requireRoleFor(undefined, roles);
+}
+
+export async function requireRoleAt(returnTo: string, ...roles: Role[]) {
+  return requireRoleFor(returnTo, roles);
 }
 
 export function canManage(account: SessionAccount) {

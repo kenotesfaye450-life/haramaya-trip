@@ -18,8 +18,8 @@ interface Booking {
     departureAt: Date | string;
     farePerSeat: number;
     route?: {
-      originCampus?: { name: string } | null;
-      destination?: { name: string } | null;
+      originLocation?: { name: string } | null;
+      destinationLocation?: { name: string } | null;
     } | null;
   } | null;
   passengers?: Array<{ fullName: string; identityType?: string; identityNumber?: string }>;
@@ -72,9 +72,9 @@ export function BookingDetail({ booking, justCreated }: BookingDetailProps) {
         <div>
           {/* Route Motif */}
           <h1 className="text-2xl font-extrabold tracking-tight text-[#0A0A0A] flex items-center gap-2">
-            <span>{route?.originCampus?.name || "Campus"}</span>
+            <span>{route?.originLocation?.name || "Campus"}</span>
             <span className="text-brand-green font-normal">──→</span>
-            <span>{route?.destination?.name || "Destination"}</span>
+            <span>{route?.destinationLocation?.name || "Destination"}</span>
           </h1>
           {departureDate && (
             <div className="text-xs text-[#66706A] font-medium mt-1.5 flex items-center gap-2">

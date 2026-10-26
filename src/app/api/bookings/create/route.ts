@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       .include('passengers')
       .include('trip', (t) =>
         t.include('route', (r) =>
-          r.include('originCampus').include('destination')
+          r.include('originLocation').include('destinationLocation')
         )
       )
       .first();

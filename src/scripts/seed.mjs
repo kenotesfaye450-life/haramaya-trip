@@ -37,87 +37,48 @@ async function seed() {
   console.log('Preparing Haramaya Trip reference data...');
   const orm = db.orm.public;
 
-  // 1. All transportation network locations (used as both origins and destinations)
+  // Baseline locations; every row is valid as either an origin or a destination.
   const allLocations = [
-    { name: 'Main Campus', code: 'MAIN' },
-    { name: 'HIT Campus', code: 'HIT' },
-    { name: 'Station Campus', code: 'STATION' },
-    { name: 'Finfinne (Addis Ababa)', code: 'FIN' },
-    { name: 'Adama', code: 'ADA' },
-    { name: 'Train Station (Dire Dawa)', code: 'TRN' },
-    { name: 'Dire Dawa City', code: 'DIR' },
-    { name: 'Harar City', code: 'HAR' },
+    { name: 'Finfinne', code: 'FIN', kind: 'EXTERNAL' },
+    { name: 'Main Campus', code: 'MAIN', kind: 'CAMPUS' },
+    { name: 'HIT', code: 'HIT', kind: 'CAMPUS' },
+    { name: 'Station', code: 'STATION', kind: 'CAMPUS' },
+    { name: 'Train Station', code: 'TRN', kind: 'EXTERNAL' },
+    { name: 'Adama', code: 'ADA', kind: 'EXTERNAL' },
+    { name: 'Chiro', code: 'CHI', kind: 'EXTERNAL' },
+    { name: 'Jijiga', code: 'JIJ', kind: 'EXTERNAL' },
   ];
 
-  // Seed Campus table (Origins)
-  const campusMap = new Map();
   for (const loc of allLocations) {
-    let campus = await orm.Campus.where({ code: loc.code }).first();
-    if (!campus) {
-      campus = await orm.Campus.create({ name: loc.name, code: loc.code, isActive: true });
-      console.log(`Created origin location (Campus): ${loc.name} (${loc.code})`);
-    } else {
-      campusMap.set(loc.code, campus);
+    const existing = await orm.Location.where({ code: loc.code }).first();
+    if (!existing) {
+      await orm.Location.create({ name: loc.name, code: loc.code, kind: loc.kind, isActive: true });
+      console.log(`Created location: ${loc.name} (${loc.code})`);
     }
-    campusMap.set(loc.code, campus);
   }
 
-  // Seed Destination table (Arrivals)
-  const destMap = new Map();
-  for (const loc of allLocations) {
-    let dest = await orm.Destination.where({ code: loc.code }).first();
-    if (!dest) {
-      dest = await orm.Destination.create({ name: loc.name, code: loc.code, isActive: true });
-      console.log(`Created destination location: ${loc.name} (${loc.code})`);
-    } else {
-      destMap.set(loc.code, dest);
-    }
-    destMap.set(loc.code, dest);
-  }
-
-  // 2. Bidirectional Routes (Departing from University & Returning to University)
-  const routesData = [
-    // Outbound from University
-    { name: 'Main Campus to Finfinne', from: 'MAIN', to: 'FIN' },
-    { name: 'Main Campus to Adama', from: 'MAIN', to: 'ADA' },
-    { name: 'Station Campus to Train Station', from: 'STATION', to: 'TRN' },
-    { name: 'HIT Campus to Finfinne', from: 'HIT', to: 'FIN' },
-    { name: 'Main Campus to Harar City', from: 'MAIN', to: 'HAR' },
-    { name: 'Main Campus to Dire Dawa City', from: 'MAIN', to: 'DIR' },
-
-    // Return to University
-    { name: 'Finfinne to Main Campus', from: 'FIN', to: 'MAIN' },
-    { name: 'Adama to Main Campus', from: 'ADA', to: 'MAIN' },
-    { name: 'Train Station to Station Campus', from: 'TRN', to: 'STATION' },
-    { name: 'Finfinne to HIT Campus', from: 'FIN', to: 'HIT' },
-    { name: 'Harar City to Main Campus', from: 'HAR', to: 'MAIN' },
-    { name: 'Dire Dawa City to Main Campus', from: 'DIR', to: 'MAIN' },
+  const tripPurposes = [
+    { code: 'SENIOR_STUDENT_ARRIVAL', name: 'Senior Student Arrival', description: 'Senior students coming from another area to campus.' },
+    { code: 'FRESH_STUDENT_ARRIVAL', name: 'Fresh Student Arrival', description: 'Fresh or new students coming from another area to campus.' },
+    { code: 'SENIOR_BREAK_DEPARTURE', name: 'Senior Student Break Departure', description: 'Senior students leaving campus at the beginning of a break.' },
+    { code: 'FRESH_BREAK_DEPARTURE', name: 'Fresh Student Break Departure', description: 'Fresh students leaving campus at the beginning of a break.' },
+    { code: 'SENIOR_BREAK_RETURN', name: 'Senior Student Break Return', description: 'Senior students returning from break to campus.' },
+    { code: 'FRESH_BREAK_RETURN', name: 'Fresh Student Break Return', description: 'Fresh students returning from break to campus.' },
+    { code: 'HOME_TOWN_DEPARTURE', name: 'Home-Town Departure', description: 'Campus to a home town or another area when students travel home.' },
+    { code: 'TRAIN_ARRIVAL_CAMPUS', name: 'Train Arrival → Campus', description: 'Passengers arriving at the Train Station and travelling to campus.' },
+    { code: 'CAMPUS_TRAIN_STATION', name: 'Campus → Train Station', description: 'Passengers leaving campus to travel to the Train Station.' },
+    { code: 'SPECIAL_EVENT', name: 'Special / Event Trip', description: 'Graduation, special university events, exceptional demand, or other Admin-approved transportation.' },
   ];
 
-  for (const r of routesData) {
-    const origin = campusMap.get(r.from);
-    const dest = destMap.get(r.to);
-    if (!origin || !dest) continue;
-
-    let route = await orm.Route.where({
-      originCampusId: origin.id,
-      destinationId: dest.id,
-    }).first();
-
-    if (!route) {
-      route = await orm.Route.create({
-        name: r.name,
-        originCampusId: origin.id,
-        destinationId: dest.id,
-        isActive: true,
-      });
-      console.log(`Created route: ${r.name}`);
-    } else {
-      console.log(`Found route: ${r.name}`);
+  for (const purpose of tripPurposes) {
+    const existing = await orm.TripPurpose.where({ code: purpose.code }).first();
+    if (!existing) {
+      await orm.TripPurpose.create({ ...purpose, isActive: true });
+      console.log(`Created trip purpose: ${purpose.name}`);
     }
   }
 
-  // 3. Vehicles
+  // Vehicles
   const vehiclesData = [
     { name: 'HU Bus 01 (Higer)', plateNumber: 'ET-3-1001', seatCapacity: 60 },
     { name: 'HU Bus 02 (Higer)', plateNumber: 'ET-3-1002', seatCapacity: 60 },

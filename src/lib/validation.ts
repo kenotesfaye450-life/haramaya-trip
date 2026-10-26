@@ -80,14 +80,21 @@ export function validatePassengerDetails(passenger: {
 }
 
 export function validateTripSearch(data: {
-  routeId?: string;
+  originLocationId?: string;
+  destinationLocationId?: string;
   date?: string;
   passengers?: number;
 }): ValidationResult {
   const errors: Record<string, string> = {};
 
-  if (!data.routeId) {
-    errors.routeId = 'Please select a route';
+  if (!data.originLocationId) {
+    errors.originLocationId = 'Please select an origin';
+  }
+  if (!data.destinationLocationId) {
+    errors.destinationLocationId = 'Please select a destination';
+  }
+  if (data.originLocationId && data.originLocationId === data.destinationLocationId) {
+    errors.destinationLocationId = 'Origin and destination must be different';
   }
 
   if (!data.date) {

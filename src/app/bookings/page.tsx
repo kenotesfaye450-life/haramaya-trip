@@ -1,13 +1,14 @@
 import { getCurrentAccount } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { BookingsList } from "@/components/passenger/bookings-list";
+import { authPageHref } from "@/lib/return-to";
 
 export const dynamic = "force-dynamic";
 
 export default async function BookingsPage() {
   const account = await getCurrentAccount();
   if (!account) {
-    redirect("/login");
+    redirect(authPageHref("login", "/bookings"));
   }
 
   return (

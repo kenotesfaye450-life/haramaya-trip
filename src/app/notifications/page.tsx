@@ -3,29 +3,27 @@ import { redirect } from "next/navigation";
 import { orm } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { authPageHref } from "@/lib/return-to";
 
 export const dynamic = "force-dynamic";
 
 export default async function NotificationsPage() {
   const account = await getCurrentAccount();
   if (!account) {
-    redirect("/login?next=/notifications");
+    redirect(authPageHref("login", "/notifications"));
   }
 
   // Fetch recent user bookings and demand requests
   const [bookings, demands] = await Promise.all([
     orm.Booking.where({ accountId: account.id })
       .include("trip", (t) =>
-        t.include("route", (r) =>
-          r.include("originCampus").include("destination")
-        )
+        t.include("originLocation").include("destinationLocation")
       )
       .orderBy((b) => b.updatedAt.desc())
       .all(),
     orm.DemandRequest.where({ accountId: account.id })
-      .include("route", (r) =>
-        r.include("originCampus").include("destination")
-      )
+      .include("originLocation")
+      .include("destinationLocation")
       .orderBy((d) => d.updatedAt.desc())
       .all(),
   ]);
@@ -43,8 +41,8 @@ export default async function NotificationsPage() {
   const notifications: NotificationItem[] = [];
 
   for (const b of bookings) {
-    const routeName = b.trip?.route
-      ? `${b.trip.route.originCampus?.name} → ${b.trip.route.destination?.name}`
+    const routeName = b.trip
+      ? `${b.trip.originLocation.name} → ${b.trip.destinationLocation.name}`
       : "University Transport";
     const date = new Date(b.updatedAt || b.createdAt);
 
@@ -102,9 +100,7 @@ export default async function NotificationsPage() {
   }
 
   for (const d of demands) {
-    const routeName = d.route
-      ? `${d.route.originCampus?.name} → ${d.route.destination?.name}`
-      : "Route";
+    const routeName = `${d.originLocation.name} → ${d.destinationLocation.name}`;
     const date = new Date(d.updatedAt || d.createdAt);
 
     if (d.status === "REVIEWED") {

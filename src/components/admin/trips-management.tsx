@@ -5,7 +5,9 @@ import Link from "next/link";
 
 interface TripItem {
   id: string;
-  routeId: string;
+  originLocationId: string;
+  destinationLocationId: string;
+  purposeId: string;
   vehicleId?: string | null;
   seatCapacity: number;
   seatsReserved: number;
@@ -16,11 +18,9 @@ interface TripItem {
   status: string;
   notes?: string | null;
   eventId?: string | null;
-  route?: {
-    name?: string | null;
-    originCampus?: { name: string } | null;
-    destination?: { name: string } | null;
-  } | null;
+  originLocation?: { name: string } | null;
+  destinationLocation?: { name: string } | null;
+  purpose?: { name: string } | null;
   vehicle?: {
     name: string;
     plateNumber: string;
@@ -30,20 +30,28 @@ interface TripItem {
 
 interface TripsManagementProps {
   allTrips: TripItem[];
-  routes: Array<{ id: string; name: string }>;
+  locations: Array<{ id: string; name: string }>;
+  purposes: Array<{ id: string; name: string }>;
   vehicles: Array<{ id: string; name: string; plateNumber: string; seatCapacity: number }>;
   events: Array<{ id: string; name: string }>;
   tripToEdit?: TripItem | null;
   isCreating?: boolean;
+  initialFromLocationId?: string;
+  initialToLocationId?: string;
+  initialDepartureDate?: string;
 }
 
 export function TripsManagement({
   allTrips,
-  routes,
+  locations,
+  purposes,
   vehicles,
   events,
   tripToEdit,
   isCreating,
+  initialFromLocationId,
+  initialToLocationId,
+  initialDepartureDate,
 }: TripsManagementProps) {
   return (
     <div className="space-y-6">
@@ -59,7 +67,7 @@ export function TripsManagement({
         </div>
         <div className="flex items-center gap-2">
           {isCreating ? (
-            <Button variant="secondary" size="sm" asChild>
+            <Button variant="neutral" size="sm" asChild>
               <Link href="/admin/trips">Close Form</Link>
             </Button>
           ) : (
@@ -85,7 +93,7 @@ export function TripsManagement({
                 {tripToEdit ? "Edit Scheduled Trip" : "Schedule New Trip Departure"}
               </h2>
               <p className="text-xs text-[#66706A]">
-                Select the route, assign an active fleet vehicle, and define the departure time.
+                Select a purpose and any active origin and destination, then assign the vehicle and schedule.
               </p>
             </div>
             <Link
@@ -97,14 +105,20 @@ export function TripsManagement({
           </div>
 
           <TripForm
-            routes={routes}
+            locations={locations}
+            purposes={purposes}
             vehicles={vehicles}
             events={events}
+            initialFromLocationId={tripToEdit?.originLocationId ?? initialFromLocationId}
+            initialToLocationId={tripToEdit?.destinationLocationId ?? initialToLocationId}
+            initialDepartureDate={initialDepartureDate}
             tripToEdit={
               tripToEdit
                 ? {
                     id: tripToEdit.id,
-                    routeId: tripToEdit.routeId,
+                    originLocationId: tripToEdit.originLocationId,
+                    destinationLocationId: tripToEdit.destinationLocationId,
+                    purposeId: tripToEdit.purposeId,
                     vehicleId: tripToEdit.vehicleId,
                     seatCapacity: tripToEdit.seatCapacity,
                     farePerSeat: tripToEdit.farePerSeat,
@@ -128,7 +142,8 @@ export function TripsManagement({
             <thead className="bg-[#F8FAF9] border-b border-[#E3E8E5] text-[#66706A] font-semibold uppercase tracking-wider">
               <tr>
                 <th className="px-4 py-3">Departure Time</th>
-                <th className="px-4 py-3">Route</th>
+                <th className="px-4 py-3">Purpose</th>
+                <th className="px-4 py-3">From → Destination</th>
                 <th className="px-4 py-3">Assigned Vehicle</th>
                 <th className="px-4 py-3">Occupancy</th>
                 <th className="px-4 py-3">Fare</th>
@@ -178,10 +193,13 @@ export function TripsManagement({
                       </div>
                     </td>
                     <td className="px-4 py-3">
+                      <div className="font-semibold text-[#171717]">{trip.purpose?.name || "Trip purpose"}</div>
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="font-semibold text-[#171717] flex items-center gap-1.5">
-                        <span>{trip.route?.originCampus?.name || "Origin"}</span>
+                        <span>{trip.originLocation?.name || "Origin"}</span>
                         <span className="text-brand-green">→</span>
-                        <span>{trip.route?.destination?.name || "Destination"}</span>
+                        <span>{trip.destinationLocation?.name || "Destination"}</span>
                       </div>
                       {trip.notes && (
                         <div className="text-[11px] text-[#66706A] truncate max-w-xs mt-0.5">
@@ -218,18 +236,12 @@ export function TripsManagement({
                     <td className="px-4 py-3">{statusBadge}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/admin/trips?editId=${trip.id}`}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-[#E3E8E5] hover:bg-[#F3F6F4] text-[#171717] transition-colors"
-                        >
-                          Edit
-                        </Link>
-                        <Link
-                          href={`/staff/check-in/${trip.id}`}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-brand-green text-white hover:bg-[#066044] transition-colors shadow-xs"
-                        >
-                          Console
-                        </Link>
+                        <Button variant="neutral" size="sm" asChild>
+                          <Link href={`/admin/trips?editId=${trip.id}`}>Edit</Link>
+                        </Button>
+                        <Button size="sm" asChild>
+                          <Link href={`/staff/check-in/${trip.id}`}>Console</Link>
+                        </Button>
                       </div>
                     </td>
                   </tr>

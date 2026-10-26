@@ -224,7 +224,7 @@ export function PassengerDetails({
         <div className="flex items-center gap-3 pt-4 border-t border-[#F3F6F4]">
           <Button
             type="button"
-            variant="secondary"
+            variant="neutral"
             onClick={handlePrevious}
             className="flex-1"
           >

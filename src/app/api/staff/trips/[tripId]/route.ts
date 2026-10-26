@@ -14,7 +14,7 @@ export async function GET(
     const { tripId } = await context.params;
 
     const trip = await orm.Trip.where({ id: tripId })
-      .include("route", r => r.include("originCampus").include("destination"))
+      .include("route", r => r.include("originLocation").include("destinationLocation"))
       .include("vehicle")
       .first();
 
@@ -39,7 +39,7 @@ export async function GET(
       trip: {
         id: trip.id,
         departureAt: trip.departureAt,
-        route: trip.route ? `${trip.route.originCampus?.name} → ${trip.route.destination?.name}` : 'Unknown route',
+        route: trip.route ? `${trip.route.originLocation?.name} → ${trip.route.destinationLocation?.name}` : 'Unknown route',
         vehicle: trip.vehicle?.name || 'TBA',
         capacity: trip.seatCapacity,
         checkedIn,

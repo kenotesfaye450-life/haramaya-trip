@@ -125,9 +125,9 @@ export function BookingReview({
         </div>
         <div className="bg-[#F8FAF9] border border-[#E3E8E5] rounded-lg p-4">
           <div className="text-lg font-bold text-[#171717] flex items-center gap-2">
-            <span>{trip.route?.originCampus?.name || "Campus"}</span>
+            <span>{trip.route?.originLocation?.name || "Campus"}</span>
             <span className="text-brand-green">──→</span>
-            <span>{trip.route?.destination?.name || "Destination"}</span>
+            <span>{trip.route?.destinationLocation?.name || "Destination"}</span>
           </div>
           <div className="flex items-center gap-2 text-xs text-[#66706A] font-medium mt-1">
             <span className="font-mono font-bold text-[#171717] tabular-nums">{timeStr}</span>
@@ -225,7 +225,7 @@ export function BookingReview({
       <div className="flex items-center gap-3 pt-2">
         <Button
           type="button"
-          variant="secondary"
+          variant="neutral"
           onClick={onBack}
           disabled={isCreating}
           className="flex-1"

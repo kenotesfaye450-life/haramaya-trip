@@ -8,7 +8,7 @@ export async function PaymentReview() {
   })
     .include("trip", (t) =>
       t.include("route", (r) =>
-        r.include("originCampus").include("destination")
+        r.include("originLocation").include("destinationLocation")
       )
     )
     .include("account")
@@ -84,9 +84,9 @@ export async function PaymentReview() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-semibold text-[#171717] flex items-center gap-1.5">
-                          <span>{route?.originCampus?.name || "Campus"}</span>
+                          <span>{route?.originLocation?.name || "Campus"}</span>
                           <span className="text-brand-green">→</span>
-                          <span>{route?.destination?.name || "Destination"}</span>
+                          <span>{route?.destinationLocation?.name || "Destination"}</span>
                         </div>
                         {dept && (
                           <div className="text-[11px] text-[#66706A] font-mono mt-0.5">
@@ -155,7 +155,7 @@ export async function PaymentReview() {
                   <div className="text-xs text-[#171717]">
                     <div className="font-semibold">{booking.account?.fullName || "Student"}</div>
                     <div className="text-[#66706A]">
-                      {route?.originCampus?.name || "Campus"} → {route?.destination?.name || "Destination"} · {booking.partySize} seats
+                      {route?.originLocation?.name || "Campus"} → {route?.destinationLocation?.name || "Destination"} · {booking.partySize} seats
                     </div>
                   </div>
 

@@ -1,9 +1,10 @@
 import { DataTable, EmptyState, PageHeader, Panel, StatusBadge } from "@/components/ui";
-import { requireRole } from "@/lib/auth";
+import { requireRoleAt } from "@/lib/auth";
 import { BOOKING_STATUS_LABELS, CHECKIN_LABELS, IDENTITY_LABELS } from "@/lib/constants";
 import { orm } from "@/lib/db";
 import { formatDateTime } from "@/lib/format";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { or } from "@prisma/orm-postgres/orm-client";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export default async function StaffSearchPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  await requireRole("STAFF", "ADMIN");
+  await requireRoleAt("/staff/search", "STAFF", "ADMIN");
   const { q } = await searchParams;
   const query = (q ?? "").trim();
 
@@ -60,7 +61,7 @@ export default async function StaffSearchPage({
       )
         .include("booking", (b) =>
           b.include("trip", (t) =>
-            t.include("route", (r) => r.include("originCampus").include("destination")),
+            t.include("route", (r) => r.include("originLocation").include("destinationLocation")),
           ),
         )
         .include("ticket")
@@ -71,7 +72,7 @@ export default async function StaffSearchPage({
         .include("passenger", (p) =>
           p.include("booking", (b) =>
             b.include("trip", (t) =>
-              t.include("route", (r) => r.include("originCampus").include("destination")),
+              t.include("route", (r) => r.include("originLocation").include("destinationLocation")),
             ),
           ),
         )
@@ -79,7 +80,7 @@ export default async function StaffSearchPage({
         .all(),
       orm.Booking.where((b) => b.reference.ilike(pattern))
         .include("trip", (t) =>
-          t.include("route", (r) => r.include("originCampus").include("destination")),
+          t.include("route", (r) => r.include("originLocation").include("destinationLocation")),
         )
         .include("account")
         .include("passengers")
@@ -107,12 +108,9 @@ export default async function StaffSearchPage({
         title="Search Bookings & Passengers"
         description="Search by passenger full name, official identity document number, backup ticket code, or booking reference."
         actions={
-          <Link
-            href="/staff"
-            className="border border-[#E3E8E5] bg-white px-3 py-2 text-xs font-semibold text-[#171717] hover:bg-[#F3F6F4] rounded-lg transition-colors shadow-xs"
-          >
-            ← Back to Departure Console
-          </Link>
+          <Button variant="neutral" size="sm" asChild>
+            <Link href="/staff">← Back to Departure Console</Link>
+          </Button>
         }
       />
 
@@ -125,12 +123,9 @@ export default async function StaffSearchPage({
             className="h-10 flex-1 border border-[#E3E8E5] bg-white px-3.5 text-sm rounded-lg outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/15 transition-colors"
             autoFocus
           />
-          <button
-            type="submit"
-            className="bg-brand-green text-white px-5 py-2 text-sm font-semibold hover:bg-[#066044] rounded-lg transition-colors cursor-pointer shadow-xs"
-          >
+          <Button type="submit" size="default">
             Search
-          </button>
+          </Button>
         </form>
       </Panel>
 
@@ -188,12 +183,11 @@ export default async function StaffSearchPage({
                     </td>
                     <td className="px-4 py-3 text-right">
                       {p.ticket ? (
-                        <Link
-                          href={`/staff?ticketId=${p.ticket.id}`}
-                          className="bg-brand-green text-white px-3 py-1.5 text-xs font-semibold hover:bg-[#066044] rounded-lg transition-colors inline-block shadow-xs"
-                        >
-                          Verify & Check In
-                        </Link>
+                        <Button size="sm" asChild>
+                          <Link href={`/staff?ticketId=${p.ticket.id}`}>
+                            Verify & Check In
+                          </Link>
+                        </Button>
                       ) : (
                         <span className="text-xs text-[#66706A]">No ticket</span>
                       )}

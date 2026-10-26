@@ -325,7 +325,7 @@ export function QRScanner({ onScanSuccess, paused = false }: QRScannerProps) {
             Test live camera scanning on a physical device over HTTPS before deployment.
           </p>
         </div>
-        <Button variant="secondary" size="sm" asChild>
+        <Button variant="neutral" size="sm" asChild>
           <Link href="/staff" className="inline-flex items-center gap-1 text-xs">
             <span>←</span>
             <span>Departures</span>
@@ -511,22 +511,23 @@ export function QRScanner({ onScanSuccess, paused = false }: QRScannerProps) {
 
       {/* Secondary & Fallback Options */}
       <div className="space-y-3 pt-1">
-        <div className="flex items-center justify-center gap-3 text-xs font-medium">
-          <button
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button
             type="button"
+            variant="neutral"
+            size="sm"
             onClick={() => setShowManualInput(!showManualInput)}
-            className="text-brand-green hover:text-[#066044] underline font-semibold cursor-pointer"
           >
             {showManualInput ? "Hide manual entry" : "Enter code manually"}
-          </button>
-          <span className="text-[#E3E8E5]">·</span>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="neutral"
+            size="sm"
             onClick={() => fileInputRef.current?.click()}
-            className="text-[#66706A] hover:text-[#0A0A0A] underline font-medium cursor-pointer"
           >
             Upload QR photo
-          </button>
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -534,13 +535,9 @@ export function QRScanner({ onScanSuccess, paused = false }: QRScannerProps) {
             className="hidden"
             onChange={handleImageUpload}
           />
-          <span className="text-[#E3E8E5]">·</span>
-          <Link
-            href="/staff/search"
-            className="text-[#66706A] hover:text-[#0A0A0A] underline font-medium"
-          >
-            Search passenger
-          </Link>
+          <Button variant="secondary" size="sm" asChild>
+            <Link href="/staff/search">Search passenger</Link>
+          </Button>
         </div>
 
         {/* Manual Code Input Form */}

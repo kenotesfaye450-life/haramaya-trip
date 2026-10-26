@@ -57,6 +57,12 @@ enum DemandStatus {
   CLOSED   = "CLOSED"
 }
 
+enum LocationKind {
+  @@type("pg/text@1")
+  CAMPUS   = "CAMPUS"
+  EXTERNAL = "EXTERNAL"
+}
+
 model Account {
   id           String            @id @onCreate(uuid(7))
   email        String            @unique
@@ -91,46 +97,42 @@ model Session {
   @@index([accountId])
 }
 
-model Campus {
+model Location {
   id        String            @id @onCreate(uuid(7))
   name      String
   code      String            @unique
+  kind      LocationKind      @default(EXTERNAL)
   isActive  Boolean           @default(true)
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
 
-  originRoutes Route[]
-  trips        Trip[]
-}
+  routesFrom       Route[]         @relation("RouteOrigin")
+  routesTo         Route[]         @relation("RouteDestination")
+  tripsFrom        Trip[]          @relation("TripOrigin")
+  tripsTo          Trip[]          @relation("TripDestination")
+  demandFrom       DemandRequest[] @relation("DemandOrigin")
+  demandTo         DemandRequest[] @relation("DemandDestination")
 
-model Destination {
-  id        String            @id @onCreate(uuid(7))
-  name      String
-  code      String            @unique
-  isActive  Boolean           @default(true)
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
-
-  routes Route[]
+  @@map("Destination")
 }
 
 model Route {
-  id              String            @id @onCreate(uuid(7))
-  name            String
-  originCampusId  String
-  originCampus    Campus            @relation(fields: [originCampusId], references: [id], onDelete: Restrict)
-  destinationId   String
-  destination     Destination       @relation(fields: [destinationId], references: [id], onDelete: Restrict)
-  isActive        Boolean           @default(true)
-  createdAt       TimestamptzString @default(now())
-  updatedAt       temporal.updatedAtString()
+  id                  String            @id @onCreate(uuid(7))
+  name                String
+  originLocationId   String
+  originLocation     Location          @relation("RouteOrigin", fields: [originLocationId], references: [id], onDelete: Restrict)
+  destinationLocationId String
+  destinationLocation Location         @relation("RouteDestination", fields: [destinationLocationId], references: [id], onDelete: Restrict)
+  isActive            Boolean           @default(true)
+  createdAt           TimestamptzString @default(now())
+  updatedAt           temporal.updatedAtString()
 
   trips          Trip[]
   demandRequests DemandRequest[]
 
-  @@unique([originCampusId, destinationId])
-  @@index([originCampusId])
-  @@index([destinationId])
+  @@unique([originLocationId, destinationLocationId])
+  @@index([originLocationId])
+  @@index([destinationLocationId])
 }
 
 model Vehicle {
@@ -161,12 +163,28 @@ model TravelEvent {
   demandRequests DemandRequest[]
 }
 
+model TripPurpose {
+  id          String            @id @onCreate(uuid(7))
+  code        String            @unique
+  name        String
+  description String?
+  isActive    Boolean           @default(true)
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  trips Trip[]
+}
+
 model Trip {
   id              String             @id @onCreate(uuid(7))
-  routeId         String
-  route           Route              @relation(fields: [routeId], references: [id], onDelete: Restrict)
-  originCampusId  String
-  originCampus    Campus             @relation(fields: [originCampusId], references: [id], onDelete: Restrict)
+  routeId         String?
+  route           Route?             @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  originLocationId String
+  originLocation   Location          @relation("TripOrigin", fields: [originLocationId], references: [id], onDelete: Restrict)
+  destinationLocationId String
+  destinationLocation   Location     @relation("TripDestination", fields: [destinationLocationId], references: [id], onDelete: Restrict)
+  purposeId       String
+  purpose         TripPurpose        @relation(fields: [purposeId], references: [id], onDelete: Restrict)
   eventId         String?
   event           TravelEvent?       @relation(fields: [eventId], references: [id], onDelete: Restrict)
   vehicleId       String?
@@ -187,6 +205,8 @@ model Trip {
   bookings Booking[]
 
   @@index([routeId])
+  @@index([originLocationId, destinationLocationId])
+  @@index([purposeId])
   @@index([status])
   @@index([departureAt])
   @@check(expression: sql`"seatCapacity" > 0`, name: "trip_capacity_positive")
@@ -274,21 +294,26 @@ model Ticket {
 }
 
 model DemandRequest {
-  id             String            @id @onCreate(uuid(7))
-  accountId      String
-  account        Account           @relation(fields: [accountId], references: [id], onDelete: Restrict)
-  routeId        String
-  route          Route             @relation(fields: [routeId], references: [id], onDelete: Restrict)
-  eventId        String?
-  event          TravelEvent?      @relation(fields: [eventId], references: [id], onDelete: Restrict)
-  travelDate     DateString
-  passengerCount Int
-  note           String?
-  status         DemandStatus
-  createdAt      TimestamptzString @default(now())
-  updatedAt      temporal.updatedAtString()
+  id                    String            @id @onCreate(uuid(7))
+  accountId             String
+  account               Account           @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  routeId               String?
+  route                 Route?            @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  originLocationId      String
+  originLocation        Location          @relation("DemandOrigin", fields: [originLocationId], references: [id], onDelete: Restrict)
+  destinationLocationId String
+  destinationLocation   Location          @relation("DemandDestination", fields: [destinationLocationId], references: [id], onDelete: Restrict)
+  eventId               String?
+  event                 TravelEvent?      @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  travelDate            DateString
+  passengerCount        Int
+  note                  String?
+  status                DemandStatus
+  createdAt             TimestamptzString @default(now())
+  updatedAt             temporal.updatedAtString()
 
   @@index([routeId])
+  @@index([originLocationId, destinationLocationId, travelDate], name: "demand_location_date")
   @@index([travelDate])
   @@check(expression: sql`"passengerCount" > 0`, name: "demand_passengers_positive")
 }

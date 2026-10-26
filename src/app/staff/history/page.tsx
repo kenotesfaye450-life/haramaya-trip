@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+import { requireRoleAt } from "@/lib/auth";
 import { orm } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ export default async function StaffCheckinHistoryPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  await requireRole("STAFF", "ADMIN");
+  await requireRoleAt("/staff/history", "STAFF", "ADMIN");
   const params = await searchParams;
   const query = (params.q || "").trim().toLowerCase();
 
@@ -24,7 +24,7 @@ export default async function StaffCheckinHistoryPage({
       b.include("trip", (t) =>
         t
           .include("route", (r) =>
-            r.include("originCampus").include("destination")
+            r.include("originLocation").include("destinationLocation")
           )
           .include("vehicle")
       )
@@ -57,7 +57,7 @@ export default async function StaffCheckinHistoryPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" asChild>
+          <Button variant="neutral" size="sm" asChild>
             <Link href="/staff">← Today&apos;s Departures</Link>
           </Button>
           <Button variant="secondary" size="sm" asChild>
@@ -157,9 +157,9 @@ export default async function StaffCheckinHistoryPage({
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-semibold text-[#171717] flex items-center gap-1.5">
-                          <span>{route?.originCampus?.name || "Origin"}</span>
+                          <span>{route?.originLocation?.name || "Origin"}</span>
                           <span className="text-brand-green">→</span>
-                          <span>{route?.destination?.name || "Destination"}</span>
+                          <span>{route?.destinationLocation?.name || "Destination"}</span>
                         </div>
                         {deptDate && (
                           <div className="text-[11px] text-[#66706A] font-mono mt-0.5">

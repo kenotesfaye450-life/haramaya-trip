@@ -1,12 +1,60 @@
-import { ButtonHTMLAttributes, forwardRef, ReactNode } from "react";
+import {
+  cloneElement,
+  forwardRef,
+  isValidElement,
+  type ButtonHTMLAttributes,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "neutral"
+  | "dark"
+  | "destructive"
+  | "danger"
+  | "success"
+  | "warning"
+  | "ghost";
+
+export type ButtonSize = "default" | "large" | "sm";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "dark" | "destructive" | "ghost";
-  size?: "default" | "large" | "sm";
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   fullWidth?: boolean;
   asChild?: boolean;
   children: ReactNode;
 }
+
+const variantClasses: Record<ButtonVariant, string> = {
+  primary:
+    "border border-transparent bg-brand-green text-white hover:bg-[#066044] active:bg-[#064E3B] focus-visible:ring-brand-green/35",
+  secondary:
+    "border border-transparent bg-[#2563EB] text-white hover:bg-[#1D4ED8] active:bg-[#1E40AF] focus-visible:ring-blue-600/35",
+  neutral:
+    "border border-[#CBD5E1] bg-white text-[#102A43] hover:border-[#AFC2D4] hover:bg-[#F4F8FC] active:bg-[#E7F0FA] focus-visible:ring-slate-500/30",
+  dark:
+    "border border-transparent bg-[#111827] text-white hover:bg-[#273449] active:bg-[#0B1220] focus-visible:ring-slate-700/35",
+  destructive:
+    "border border-transparent bg-[#B42318] text-white hover:bg-[#912018] active:bg-[#7A1B15] focus-visible:ring-red-700/35",
+  danger:
+    "border border-transparent bg-[#B42318] text-white hover:bg-[#912018] active:bg-[#7A1B15] focus-visible:ring-red-700/35",
+  success:
+    "border border-transparent bg-brand-green text-white hover:bg-[#066044] active:bg-[#064E3B] focus-visible:ring-brand-green/35",
+  warning:
+    "border border-transparent bg-[#F4B740] text-[#30220A] hover:bg-[#E2A52F] active:bg-[#C78C1C] focus-visible:ring-amber-600/35",
+  ghost:
+    "border border-transparent bg-transparent text-[#102A43] hover:bg-[#EAF1F8] active:bg-[#DCE8F4] focus-visible:ring-slate-500/30",
+};
+
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: "min-h-9 rounded-md px-3.5 py-2 text-xs",
+  default: "min-h-10 rounded-lg px-4 py-2.5 text-sm",
+  large: "min-h-11 rounded-lg px-5 py-3 text-sm",
+};
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -16,48 +64,72 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       fullWidth = false,
       asChild = false,
       className = "",
-      disabled,
+      disabled = false,
+      type = "button",
       children,
+      onClick,
       ...props
     },
     ref
   ) => {
-    const baseClasses =
-      "inline-flex items-center justify-center font-semibold transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green disabled:opacity-50 disabled:cursor-not-allowed select-none";
-
-    const variantClasses = {
-      // Primary action uses the shared brand-green token.
-      primary:
-        "bg-brand-green text-white hover:bg-[#066044] active:bg-[#064E3B] shadow-sm hover:shadow border border-transparent",
-      // Secondary: White surface with clean neutral border
-      secondary:
-        "bg-white text-[#171717] border border-[#E3E8E5] hover:bg-[#F3F6F4] hover:border-[#D1D8D4] active:bg-[#EAEFEA]",
-      // Dark / Structural
-      dark:
-        "bg-[#0A0A0A] text-white hover:bg-[#262626] active:bg-[#171717] border border-transparent",
-      // Destructive: Red
-      destructive:
-        "bg-[#DC2626] text-white hover:bg-[#B91C1C] active:bg-[#991B1B] border border-transparent",
-      // Ghost
-      ghost:
-        "bg-transparent text-[#171717] hover:bg-[#ECFDF5] hover:text-brand-green active:bg-[#D1FAE5] border border-transparent",
-    };
-
-    const sizeClasses = {
-      sm: "h-8 px-3 text-xs rounded-md",
-      default: "h-10 px-4 text-sm rounded-lg",
-      large: "h-12 px-6 text-base rounded-lg",
-    };
-
-    const widthClass = fullWidth ? "w-full" : "";
-    const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${className}`;
+    const classes = [
+      "inline-flex shrink-0 items-center justify-center gap-2 text-center font-semibold leading-tight",
+      "transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+      "disabled:cursor-not-allowed disabled:opacity-55 disabled:saturate-50",
+      variantClasses[variant],
+      sizeClasses[size],
+      fullWidth ? "w-full" : "",
+      className,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     if (asChild) {
-      return children as ReactNode;
+      if (!isValidElement(children)) {
+        throw new Error("Button with asChild requires one element child.");
+      }
+
+      const child = children as ReactElement<Record<string, unknown>>;
+      const childProps = child.props;
+      const childOnClick = childProps.onClick as
+        | ((event: MouseEvent<HTMLElement>) => void)
+        | undefined;
+      const mergedProps: Record<string, unknown> = {
+        ...childProps,
+        ...props,
+        className: [classes, disabled ? "pointer-events-none" : "", childProps.className]
+          .filter((value): value is string => typeof value === "string" && value.length > 0)
+          .join(" "),
+        ...(disabled ? { "aria-disabled": true, tabIndex: -1 } : {}),
+      };
+
+      if (childOnClick || onClick) {
+        mergedProps.onClick = (event: MouseEvent<HTMLElement>) => {
+          if (disabled) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+
+          childOnClick?.(event);
+          if (!event.defaultPrevented) {
+            onClick?.(event as unknown as MouseEvent<HTMLButtonElement>);
+          }
+        };
+      }
+
+      return cloneElement(child, mergedProps);
     }
 
     return (
-      <button ref={ref} className={classes} disabled={disabled} {...props}>
+      <button
+        ref={ref}
+        type={type}
+        className={classes}
+        disabled={disabled}
+        onClick={onClick}
+        {...props}
+      >
         {children}
       </button>
     );

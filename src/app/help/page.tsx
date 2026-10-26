@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FullBrandLogo } from "@/components/brand-logo";
+import { Button } from "@/components/ui/button";
 
 const faqs = [
   {
@@ -50,8 +51,12 @@ export default function HelpPage() {
       </section>
 
       <nav className="flex flex-wrap gap-2" aria-label="Travel actions">
-        <Link href="/trips" className="rounded-lg bg-brand-green px-4 py-2 text-xs font-semibold text-white hover:bg-[#064E3B]">Find transport</Link>
-        <Link href="/demand" className="rounded-lg border border-[#DCE4EC] bg-white px-4 py-2 text-xs font-semibold text-[#102A43] hover:bg-[#F4F8FC]">Request a trip</Link>
+        <Button asChild>
+          <Link href="/trips">Find transport</Link>
+        </Button>
+        <Button variant="secondary" asChild>
+          <Link href="/demand">Request a trip</Link>
+        </Button>
       </nav>
     </div>
   );
