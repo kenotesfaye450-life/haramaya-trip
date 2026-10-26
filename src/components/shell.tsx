@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { logoutAction } from "@/lib/actions/auth";
 import type { SessionAccount } from "@/lib/auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { BrandEmblem, BrandLogo } from "@/components/brand-logo";
+import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 
 interface AppShellProps {
@@ -17,6 +17,9 @@ interface AppShellProps {
 export function AppShell({ account, children }: AppShellProps) {
   const pathname = usePathname() || "";
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileDrawerRef = useRef<HTMLDivElement>(null);
+  const drawerWasOpen = useRef(false);
 
   const role = account?.role || "GUEST";
   const isAdmin = role === "ADMIN";
@@ -36,13 +39,39 @@ export function AppShell({ account, children }: AppShellProps) {
     };
   }, [mobileDrawerOpen]);
 
-  // Handle escape key
+  // Keep keyboard focus within the open drawer and return it to the menu button.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && mobileDrawerOpen) {
+    if (!mobileDrawerOpen) {
+      if (drawerWasOpen.current) {
+        mobileMenuButtonRef.current?.focus();
+        drawerWasOpen.current = false;
+      }
+      return;
+    }
+
+    drawerWasOpen.current = true;
+    const focusableElements =
+      mobileDrawerRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled])'
+      );
+    const firstFocusable = focusableElements?.[0];
+    const lastFocusable = focusableElements?.[focusableElements.length - 1];
+    firstFocusable?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
         setMobileDrawerOpen(false);
+      } else if (event.key === "Tab" && firstFocusable && lastFocusable) {
+        if (event.shiftKey && document.activeElement === firstFocusable) {
+          event.preventDefault();
+          lastFocusable.focus();
+        } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+          event.preventDefault();
+          firstFocusable.focus();
+        }
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileDrawerOpen]);
@@ -315,17 +344,20 @@ export function AppShell({ account, children }: AppShellProps) {
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-3">
             <button
+              ref={mobileMenuButtonRef}
               type="button"
               onClick={() => setMobileDrawerOpen(true)}
-              className="p-2 rounded-lg text-[#23384D] hover:text-[#102A43] hover:bg-[#E7F0FA] focus:outline-none focus:ring-2 focus:ring-brand-green/20 cursor-pointer"
-              aria-label="Open navigation drawer"
+              className="min-h-11 min-w-11 rounded-lg text-[#23384D] hover:text-[#102A43] hover:bg-[#E7F0FA] focus:outline-none focus:ring-2 focus:ring-brand-green/20 cursor-pointer"
+              aria-label="Open navigation"
+              aria-expanded={mobileDrawerOpen}
+              aria-controls="mobile-navigation"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
             <Link href="/" className="inline-block" aria-label="Haramaya Trip home">
-              <BrandEmblem size={34} />
+              <BrandLogo size={30} />
             </Link>
           </div>
 
@@ -487,15 +519,19 @@ export function AppShell({ account, children }: AppShellProps) {
           />
 
           {/* Drawer Surface */}
-            <div className="relative w-72 max-w-[85vw] bg-[#F4F8FC] h-full shadow-xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
+          <div
+            ref={mobileDrawerRef}
+            id="mobile-navigation"
+            className="relative w-72 max-w-[85vw] bg-[#F4F8FC] h-full shadow-xl flex flex-col z-10 animate-in slide-in-from-left duration-200"
+          >
             {/* Drawer Header */}
             <div className="p-4 border-b border-[#D8E5F2] flex items-center justify-between bg-[#EDF4FB]">
               <BrandLogo size={36} subtitle={isAdminView ? "Admin" : isStaffView ? "Staff" : "Traveler"} />
               <button
                 type="button"
                 onClick={() => setMobileDrawerOpen(false)}
-                className="p-1.5 rounded-md text-[#66706A] hover:text-[#0A0A0A] hover:bg-[#E3E8E5] cursor-pointer"
-                aria-label="Close menu"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-[#66706A] hover:text-[#0A0A0A] hover:bg-[#E3E8E5] cursor-pointer"
+                aria-label="Close navigation"
               >
                 ✕
               </button>
@@ -516,7 +552,7 @@ export function AppShell({ account, children }: AppShellProps) {
                           key={item.href}
                           href={item.href}
                           onClick={() => setMobileDrawerOpen(false)}
-                          className={`flex items-center gap-2.5 px-3 py-1.5 text-[13px] rounded-lg font-medium transition-colors border-l-2 ${
+                          className={`flex min-h-11 items-center gap-2.5 px-3 py-2 text-[13px] rounded-lg font-medium transition-colors border-l-2 ${
                             active
                               ? "border-brand-green bg-white text-[#064E3B] font-semibold"
                               : "border-transparent text-[#344B63] hover:bg-[#E7F0FA] hover:text-[#102A43]"
@@ -556,41 +592,36 @@ export function AppShell({ account, children }: AppShellProps) {
                   )}
                 </div>
               )}
-            </div>
 
-            {/* Drawer Footer with Session Controls */}
-            <div className="p-3 border-t border-[#D8E5F2] bg-[#EDF4FB]">
-              {account ? (
-                <div className="space-y-3">
-                  <div className="text-xs">
-                    <div className="font-bold text-[#0A0A0A]">{account.fullName}</div>
-                    <div className="text-[10px] text-brand-green font-semibold uppercase">{account.role}</div>
+              {/* Session controls follow navigation instead of pinning to the drawer bottom. */}
+              <div className="mt-4 border-t border-[#D8E5F2] pt-3">
+                {account ? (
+                  <div className="space-y-2">
+                    <div className="text-xs">
+                      <div className="truncate font-bold text-[#0A0A0A]">{account.fullName}</div>
+                      <div className="text-[10px] text-brand-green font-semibold uppercase">{account.role}</div>
+                    </div>
+                    <form action={logoutAction}>
+                      <Button variant="danger" size="sm" fullWidth type="submit">
+                        Sign out
+                      </Button>
+                    </form>
                   </div>
-                  <form action={logoutAction}>
-                    <Button variant="danger" size="sm" fullWidth type="submit">
-                      Sign out
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="neutral" size="sm" fullWidth asChild>
+                      <Link href="/login" onClick={() => setMobileDrawerOpen(false)}>
+                        Sign in
+                      </Link>
                     </Button>
-                  </form>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="neutral"
-                    size="sm"
-                    fullWidth
-                    asChild
-                  >
-                    <Link href="/login" onClick={() => setMobileDrawerOpen(false)}>
-                      Sign in
-                    </Link>
-                  </Button>
-                  <Button variant="secondary" size="sm" fullWidth asChild>
-                    <Link href="/register" onClick={() => setMobileDrawerOpen(false)}>
-                      Register
-                    </Link>
-                  </Button>
-                </div>
-              )}
+                    <Button variant="secondary" size="sm" fullWidth asChild>
+                      <Link href="/register" onClick={() => setMobileDrawerOpen(false)}>
+                        Register
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

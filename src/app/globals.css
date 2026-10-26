@@ -118,7 +118,8 @@ body {
   button,
   a[role="button"],
   input[type="button"],
-  input[type="submit"] {
+  input[type="submit"],
+  .touch-target {
     min-height: 44px;
   }
 }

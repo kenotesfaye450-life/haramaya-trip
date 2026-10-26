@@ -4,6 +4,7 @@ import { getCurrentAccount } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  applicationName: "Haramaya Trip",
   title: {
     default: "Haramaya Trip — University Transportation",
     template: "%s | Haramaya Trip",
@@ -46,7 +47,11 @@ export default async function RootLayout({
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                  if (${process.env.NODE_ENV === "production"}) {
+                    navigator.serviceWorker.register('/sw.js').catch(function(error) {
+                      console.error('Service worker registration failed:', error);
+                    });
+                  }
                 });
               }
             `,

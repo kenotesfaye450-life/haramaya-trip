@@ -93,16 +93,17 @@ export async function TripResults({
     <div className="space-y-6">
       {/* Search Criteria Bar */}
       <div className="bg-white border border-[#E3E8E5] rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xs">
-        <div>
+        <div className="min-w-0">
           <div className="text-[11px] font-bold text-brand-green uppercase tracking-wider">
             Available Departures
           </div>
-          <div className="text-xl font-extrabold text-[#0A0A0A] tracking-tight mt-0.5 flex items-center gap-2">
-            <span>{fromLabel}</span>
-            <span className="text-brand-green">──→</span>
-            <span>{toLabel}</span>
+          <div className="text-xl font-extrabold text-[#0A0A0A] tracking-tight mt-0.5 flex min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+            <span className="max-w-full break-words">{fromLabel}</span>
+            <span className="text-brand-green font-normal leading-none sm:hidden" aria-hidden="true">↓</span>
+            <span className="hidden text-brand-green sm:inline" aria-hidden="true">──→</span>
+            <span className="max-w-full break-words">{toLabel}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[#66706A] mt-1 font-medium">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#66706A] mt-1 font-medium">
             {date && (
               <>
                 <span>
@@ -132,7 +133,7 @@ export async function TripResults({
 
       {/* No Results State (Requirement 53) */}
       {matchingTrips.length === 0 ? (
-        <div className="bg-white border border-[#E3E8E5] rounded-xl p-10 text-center space-y-4 shadow-xs">
+        <div className="bg-white border border-[#E3E8E5] rounded-xl p-6 sm:p-10 text-center space-y-4 shadow-xs">
           <div className="w-12 h-12 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl flex items-center justify-center text-brand-green mx-auto">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -207,12 +208,17 @@ export async function TripResults({
                     </div>
 
                     {/* Recurring Route Motif */}
-                    <div className="text-base font-bold text-[#171717] tracking-tight flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-brand-green" />
-                      <span>{originName}</span>
-                      <span className="text-brand-green font-normal">──────→</span>
-                      <span className="w-2 h-2 rounded-full border border-brand-green bg-white" />
-                      <span>{destName}</span>
+                    <div className="text-base font-bold text-[#171717] tracking-tight flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                      <span className="flex max-w-full min-w-0 items-center gap-2">
+                        <span className="w-2 h-2 shrink-0 rounded-full bg-brand-green" />
+                        <span className="min-w-0 break-words">{originName}</span>
+                      </span>
+                      <span className="ml-0.5 text-brand-green font-normal leading-none sm:hidden" aria-hidden="true">↓</span>
+                      <span className="hidden text-brand-green font-normal sm:inline" aria-hidden="true">──────→</span>
+                      <span className="flex max-w-full min-w-0 items-center gap-2">
+                        <span className="w-2 h-2 shrink-0 rounded-full border border-brand-green bg-white" />
+                        <span className="min-w-0 break-words">{destName}</span>
+                      </span>
                     </div>
                     <div className="text-xs text-[#66706A]">{trip.purpose?.name}</div>
 
@@ -249,7 +255,7 @@ export async function TripResults({
                   </div>
 
                   {/* Right: Fare & Primary Action */}
-                  <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-4 pt-3 sm:pt-0 border-t border-[#F3F6F4] sm:border-0">
+                  <div className="flex flex-wrap items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-4 pt-3 sm:pt-0 border-t border-[#F3F6F4] sm:border-0">
                     <div className="sm:text-right">
                       <div className="text-2xl font-extrabold text-[#0A0A0A] font-mono tabular-nums leading-tight">
                         ETB {trip.farePerSeat}

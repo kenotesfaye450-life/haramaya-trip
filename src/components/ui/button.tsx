@@ -73,7 +73,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const classes = [
-      "inline-flex shrink-0 items-center justify-center gap-2 text-center font-semibold leading-tight",
+      "touch-target inline-flex shrink-0 items-center justify-center gap-2 text-center font-semibold leading-tight",
       "transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       "disabled:cursor-not-allowed disabled:opacity-55 disabled:saturate-50",
       variantClasses[variant],
