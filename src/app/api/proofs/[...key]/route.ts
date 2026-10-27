@@ -1,6 +1,11 @@
 import { getCurrentAccount } from "@/lib/auth";
 import { formatErrorResponse } from "@/lib/errors";
-import { createPaymentProofSignedUrl, isCurrentPaymentProofStorageKey } from "@/lib/payment-proof-storage";
+import {
+  createPaymentProofSignedUrl,
+  isCurrentPaymentProofStorageKey,
+  readLocalPaymentProofObject,
+  usesLocalPaymentProofStorage,
+} from "@/lib/payment-proof-storage";
 import { orm } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +48,31 @@ export async function GET(
         headers: { "Cache-Control": "private, no-store" },
       },
     );
+  }
+
+  if (usesLocalPaymentProofStorage()) {
+    try {
+      const contents = await readLocalPaymentProofObject(storageKey);
+      return new Response(contents, {
+        status: 200,
+        headers: {
+          "Content-Type": proof.mimeType,
+          "Content-Length": String(contents.length),
+          "Cache-Control": "private, no-store",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
+    } catch (error) {
+      const formatted = formatErrorResponse(error);
+      return new Response(formatted.error, {
+        status: formatted.statusCode,
+        headers: {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "text/plain; charset=utf-8",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
+    }
   }
 
   try {

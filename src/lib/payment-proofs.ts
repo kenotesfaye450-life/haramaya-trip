@@ -9,7 +9,7 @@ import {
   uploadPaymentProofObject,
 } from "@/lib/payment-proof-storage";
 
-const MAX_PROOF_BYTES = 5 * 1024 * 1024;
+const MAX_PROOF_BYTES = 4 * 1024 * 1024;
 const ALLOWED_PROOF_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const TEN_MINUTES_MS = 10 * 60 * 1000;
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
@@ -17,7 +17,7 @@ const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 function validateProofFile(file: File) {
   if (!file.size) throw new AppError("Attach a payment proof image.");
   if (file.size > MAX_PROOF_BYTES) {
-    throw new AppError("Payment proof must be 5 MB or smaller.", 413);
+    throw new AppError("Payment proof must be 4 MB or smaller.", 413);
   }
   if (!ALLOWED_PROOF_TYPES.has(file.type)) {
     throw new AppError("Upload a JPEG, PNG, or WebP image.", 415);
@@ -73,31 +73,57 @@ function safeFileName(fileName: string) {
   return fileName.replace(/[\r\n\0]/g, "_").slice(0, 255) || "payment-proof";
 }
 
-export async function submitPaymentProof(
+function safePaymentProofErrorDetails(error: unknown) {
+  const errorName =
+    error instanceof Error && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(error.name)
+      ? error.name
+      : "Unknown";
+  const appError = error instanceof AppError ? error : null;
+  return {
+    errorName,
+    statusCode: appError?.statusCode,
+    errorCode:
+      appError?.code && /^[A-Za-z0-9_-]{1,64}$/.test(appError.code)
+        ? appError.code
+        : undefined,
+  };
+}
+
+async function submitPaymentProofInternal(
   account: SessionAccount,
   bookingId: string,
   file: File,
   note?: string,
+  setStage: (stage: string) => void = () => {},
 ) {
+  setStage("request_validation");
   if (!bookingId || bookingId.length > 128) {
     throw new AppError("A valid booking ID is required.", 400);
   }
   if (note && note.length > 1000) throw new AppError("The payment note is too long.", 400);
   validateProofFile(file);
 
+  setStage("booking_lookup");
   const initialBooking = await orm.Booking.where({ id: bookingId }).first();
   if (!initialBooking) throw new AppError("Booking not found.", 404);
+
+  setStage("authorization");
   assertAuthorizedOwner(account, initialBooking.accountId);
+
+  setStage("booking_state");
   const initialProofs = await orm.PaymentProof.where({ bookingId }).all();
   assertBookingAcceptsProof(initialBooking, initialProofs.length);
 
+  setStage("image_validation");
   const contents = Buffer.from(await file.arrayBuffer());
   if (contents.length !== file.size) throw new AppError("The uploaded file is incomplete.", 400);
   validateProofSignature(contents, file.type);
 
   const storageKey = createPaymentProofStorageKey(bookingId, file.type);
+  setStage("storage_upload");
   await uploadPaymentProofObject(storageKey, contents, file.type);
 
+  setStage("database_transaction");
   try {
     const updatedBooking = await db.transaction(async (tx) => {
       const booking = await tx.orm.public.Booking.where({ id: bookingId }).forUpdate().first();
@@ -157,6 +183,26 @@ export async function submitPaymentProof(
     } catch {
       console.error("A payment proof object could not be removed after a database failure.");
     }
+    throw error;
+  }
+}
+
+export async function submitPaymentProof(
+  account: SessionAccount,
+  bookingId: string,
+  file: File,
+  note?: string,
+) {
+  let stage = "request_validation";
+  try {
+    return await submitPaymentProofInternal(account, bookingId, file, note, (nextStage) => {
+      stage = nextStage;
+    });
+  } catch (error) {
+    console.error("Payment-proof submission failed.", {
+      stage,
+      ...safePaymentProofErrorDetails(error),
+    });
     throw error;
   }
 }

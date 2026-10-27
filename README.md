@@ -106,7 +106,7 @@ npm run build
 
 Before production hosting:
 
-1. **Persistent Upload Storage**: Payment proofs are currently buffered locally in `./storage/proofs`. In hosted multi-instance production (e.g. AWS, Vercel, Railway), this must be backed by a persistent private object storage bucket (e.g., S3, Cloudflare R2) with signed URLs.
+1. **Persistent Upload Storage**: Local development stores payment proofs in the ignored `./storage/proofs` directory when Supabase storage is not configured. Production requires `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and a private Supabase Storage bucket named `payment-proofs`; proof access uses short-lived signed URLs.
 2. **Hosted PostgreSQL**: Ensure connection pooling (e.g., PgBouncer / Neon pooler) is configured in `DATABASE_URL` with SSL mode enabled.
 3. **Payment instructions**: No official transfer destination is configured in the app. University Transport must provide and publish its payment details before accepting live bookings.
 4. **HTTPS / Secure Context**: Camera scanning hardware and PWA service workers require a valid HTTPS certificate or secure localhost context.

@@ -32,8 +32,8 @@ export function PaymentInstructions({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError("File size exceeds 5MB limit");
+    if (file.size > 4 * 1024 * 1024) {
+      setError("File size exceeds 4MB limit");
       setSelectedFile(null);
       e.currentTarget.value = "";
       return;

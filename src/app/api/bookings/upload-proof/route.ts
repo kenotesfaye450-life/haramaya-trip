@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAccount } from "@/lib/auth";
-import { AppError, formatErrorResponse, logError } from "@/lib/errors";
+import { AppError, formatErrorResponse } from "@/lib/errors";
 import { submitPaymentProof } from "@/lib/payment-proofs";
 
 export async function POST(request: NextRequest) {
+  let stage = "authentication";
   try {
     const account = await getCurrentAccount();
     if (!account) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    stage = "multipart_parsing";
     let formData: FormData;
     try {
       formData = await request.formData();
@@ -23,6 +25,7 @@ export async function POST(request: NextRequest) {
       throw new AppError("Booking ID and image file are required.", 400);
     }
 
+    stage = "proof_submission";
     const booking = await submitPaymentProof(account, bookingId, file);
     return NextResponse.json({
       success: true,
@@ -35,8 +38,20 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    logError(error, { route: "/api/bookings/upload-proof" });
-    const formatted = formatErrorResponse(error);
+    if (stage !== "proof_submission") {
+      console.error("Payment-proof upload request failed.", {
+        stage,
+        errorName:
+          error instanceof Error && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(error.name)
+            ? error.name
+            : "Unknown",
+        statusCode: error instanceof AppError ? error.statusCode : undefined,
+      });
+    }
+    const formatted =
+      error instanceof AppError
+        ? formatErrorResponse(error)
+        : { error: "Unable to submit the payment proof. Please try again.", statusCode: 500 };
     return NextResponse.json(
       { error: formatted.error },
       { status: formatted.statusCode },
