@@ -71,7 +71,9 @@ export function EventForm({ eventToEdit }: { eventToEdit?: EventFormDraft }) {
         Active
       </label>
 
-      <SubmitButton>{eventToEdit ? "Update Event" : "Create Event"}</SubmitButton>
+      <SubmitButton pendingText="Saving event…">
+        {eventToEdit ? "Update Event" : "Create Event"}
+      </SubmitButton>
     </form>
   );
 }

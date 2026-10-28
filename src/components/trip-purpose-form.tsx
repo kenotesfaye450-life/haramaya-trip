@@ -35,7 +35,9 @@ export function TripPurposeForm({ purposeToEdit }: { purposeToEdit?: TripPurpose
           Active and available for trip planning
         </label>
       ) : null}
-      <SubmitButton>{purposeToEdit ? "Save Purpose" : "Add Purpose"}</SubmitButton>
+      <SubmitButton pendingText="Saving purpose…">
+        {purposeToEdit ? "Save Purpose" : "Add Purpose"}
+      </SubmitButton>
     </form>
   );
 }

@@ -31,16 +31,39 @@ export function RegisterForm({ returnTo }: { returnTo?: string }) {
       {returnTo ? <input type="hidden" name="next" value={returnTo} /> : null}
       {state?.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <Field label="Full name">
-        <input className={inputClass} name="fullName" required autoComplete="name" autoFocus />
+        <input
+          className={inputClass}
+          name="fullName"
+          required
+          minLength={3}
+          maxLength={120}
+          autoComplete="name"
+          autoFocus
+        />
       </Field>
       <Field label="Email">
-        <input className={inputClass} name="email" type="email" required autoComplete="email" />
+        <input
+          className={inputClass}
+          name="email"
+          type="email"
+          required
+          maxLength={254}
+          autoComplete="email"
+        />
       </Field>
       <Field label="Phone">
-        <input className={inputClass} name="phone" autoComplete="tel" />
+        <input className={inputClass} name="phone" maxLength={40} autoComplete="tel" />
       </Field>
       <Field label="Password" hint="At least 8 characters.">
-        <input className={inputClass} name="password" type="password" required autoComplete="new-password" />
+        <input
+          className={inputClass}
+          name="password"
+          type="password"
+          required
+          minLength={8}
+          maxLength={256}
+          autoComplete="new-password"
+        />
       </Field>
       <SubmitButton pendingText="Creating account…" fullWidth>
         Create account

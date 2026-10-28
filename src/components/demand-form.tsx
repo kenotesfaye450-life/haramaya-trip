@@ -64,7 +64,7 @@ export function DemandForm({
         <textarea className={`${inputClass} h-20 py-2`} name="note" placeholder="e.g. luggage requirements, preferred departure time" />
       </Field>
 
-      <SubmitButton>Submit travel demand</SubmitButton>
+      <SubmitButton pendingText="Submitting demand…">Submit travel demand</SubmitButton>
     </form>
   );
 }

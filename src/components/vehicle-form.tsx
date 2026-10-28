@@ -69,7 +69,9 @@ export function VehicleForm({ vehicleToEdit }: { vehicleToEdit?: VehicleFormDraf
       )}
 
       <div className="flex items-center gap-2 pt-2">
-        <SubmitButton>{vehicleToEdit ? "Update Vehicle" : "Add Vehicle"}</SubmitButton>
+        <SubmitButton pendingText="Saving vehicle…">
+          {vehicleToEdit ? "Update Vehicle" : "Add Vehicle"}
+        </SubmitButton>
         {vehicleToEdit && (
           <Link
             href="/admin/vehicles"

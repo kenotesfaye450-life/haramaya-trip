@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/auth";
+import { destroySession, requireRole } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { ROLES, type Role } from "@/lib/constants";
 import { hashPassword } from "@/lib/crypto";
@@ -413,6 +413,20 @@ async function writeAccountAudit(
   });
 }
 
+async function invalidateAccountSessions(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  accountId: string,
+) {
+  const sessions = await tx.orm.public.Session.where({ accountId }).all();
+  for (const session of sessions) {
+    await tx.orm.public.Session.where({ id: session.id }).delete();
+  }
+  const remainingSession = await tx.orm.public.Session.where({ accountId }).first();
+  if (remainingSession) {
+    throw new Error("Account session invalidation did not remove every session.");
+  }
+}
+
 export async function createAccountAction(formData: FormData): Promise<AccountActionResult> {
   const actor = await admin();
   try {
@@ -468,7 +482,7 @@ export async function changeAccountRoleAction(formData: FormData): Promise<Accou
 
       if (account.role !== nextRole) {
         await tx.orm.public.Account.where({ id }).update({ role: nextRole });
-        await tx.orm.public.Session.where({ accountId: id }).delete();
+        await invalidateAccountSessions(tx, id);
         await writeAccountAudit(tx, actor.id, "account.role_change", id);
       }
       return actor.id === id && account.role !== nextRole;
@@ -509,7 +523,7 @@ export async function setAccountActiveAction(formData: FormData): Promise<Accoun
 
       if (account.isActive !== active) {
         await tx.orm.public.Account.where({ id }).update({ isActive: active });
-        if (!active) await tx.orm.public.Session.where({ accountId: id }).delete();
+        if (!active) await invalidateAccountSessions(tx, id);
         await writeAccountAudit(tx, actor.id, active ? "account.enable" : "account.disable", id);
       }
       return actor.id === id && !active && account.isActive;
@@ -541,7 +555,7 @@ export async function resetAccountPasswordAction(
       const account = await tx.orm.public.Account.where({ id }).forUpdate().first();
       if (!account) throw new AppError("Account not found.");
       await tx.orm.public.Account.where({ id }).update({ passwordHash });
-      await tx.orm.public.Session.where({ accountId: id }).delete();
+      await invalidateAccountSessions(tx, id);
       await writeAccountAudit(tx, actor.id, "account.password_reset", id);
     });
 
@@ -549,6 +563,9 @@ export async function resetAccountPasswordAction(
   } catch (error) {
     return accountActionError(error, "Unable to reset the account password.");
   }
-  if (actor.id === id) redirect("/login");
+  if (actor.id === id) {
+    await destroySession();
+    redirect("/login");
+  }
   return { ok: true };
 }

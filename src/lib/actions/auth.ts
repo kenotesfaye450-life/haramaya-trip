@@ -25,15 +25,16 @@ export async function registerAction(_: unknown, formData: FormData) {
     if (password.length < 8) throw new AppError("Password must be at least 8 characters.");
     const existing = await orm.Account.where({ email }).first();
     if (existing) throw new AppError("An account with this email already exists.");
+    const passwordHash = await hashPassword(password);
     const account = await orm.Account.create({
       email,
       fullName,
       phone: phone || null,
-      passwordHash: await hashPassword(password),
+      passwordHash,
       role: "TRAVELER",
       isActive: true,
     });
-    await createSession(account.id);
+    await createSession(account.id, passwordHash);
     await writeAudit({
       actorId: account.id,
       action: "account.register",
@@ -59,7 +60,7 @@ export async function loginAction(_: unknown, formData: FormData) {
       throw new AppError("Invalid email or password.");
     }
     if (!account.isActive) throw new AppError("This account is disabled.");
-    await createSession(account.id);
+    await createSession(account.id, account.passwordHash);
     await writeAudit({
       actorId: account.id,
       action: "account.login",

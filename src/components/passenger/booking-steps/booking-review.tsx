@@ -71,21 +71,31 @@ export function BookingReview({
         }),
       });
 
+      const data = await response.json().catch(() => null);
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to create booking");
+        setError(
+          typeof data?.error === "string"
+            ? data.error
+            : "Unable to create the booking. Please try again.",
+        );
+        setIsCreating(false);
+        return;
       }
 
-      const data = await response.json();
-      const bookingId = data.bookingId || data.booking?.id;
+      const bookingId =
+        typeof data?.bookingId === "string"
+          ? data.bookingId
+          : typeof data?.booking?.id === "string"
+            ? data.booking.id
+            : null;
       if (!bookingId) {
-        throw new Error("Invalid response from server");
+        setError("Unable to confirm the booking. Please try again.");
+        setIsCreating(false);
+        return;
       }
       router.push(`/bookings/${bookingId}?created=true`);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create booking"
-      );
+    } catch {
+      setError("Unable to create the booking. Check your connection and try again.");
       setIsCreating(false);
     }
   };

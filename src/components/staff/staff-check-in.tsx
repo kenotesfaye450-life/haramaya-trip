@@ -21,6 +21,8 @@ export function StaffCheckIn({ tripId }: { tripId: string }) {
   const [booking, setBooking] = useState<VerifiedBooking | null>(null);
   const [passengers, setPassengers] = useState<VerifiedPassenger[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingTrip, setLoadingTrip] = useState(true);
+  const [tripInfoError, setTripInfoError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [checkedInCount, setCheckedInCount] = useState(0);
@@ -32,18 +34,26 @@ export function StaffCheckIn({ tripId }: { tripId: string }) {
       try {
         const response = await fetch(`/api/staff/trips/${tripId}`);
         if (!response.ok) {
-          throw new Error('Failed to load trip information');
+          if (!ignore) {
+            setTripInfoError("Unable to load departure details. Please refresh the page.");
+          }
+          return;
         }
         const data = await response.json();
         if (!ignore && data.trip) {
           setTripInfo(data.trip);
           setCheckedInCount(data.trip.checkedIn || 0);
           setTotalCount(data.trip.capacity || 0);
+        } else if (!ignore) {
+          setTripInfoError("Departure details are unavailable. Please refresh the page.");
         }
-      } catch (err) {
+      } catch {
         if (!ignore) {
-          console.error('Failed to load trip:', err);
+          console.error("Failed to load staff departure details.");
+          setTripInfoError("Unable to load departure details. Please refresh the page.");
         }
+      } finally {
+        if (!ignore) setLoadingTrip(false);
       }
     }
     fetchTrip();
@@ -69,14 +79,18 @@ export function StaffCheckIn({ tripId }: { tripId: string }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Invalid ticket code or unrecognized signature');
+        setError(
+          typeof data.error === "string"
+            ? data.error
+            : "Unable to verify this ticket. Please try again.",
+        );
+        return;
       }
 
       setBooking(data.booking);
       setPassengers(data.passengers || []);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to verify ticket';
-      setError(message);
+    } catch {
+      setError("Unable to verify this ticket. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -102,16 +116,20 @@ export function StaffCheckIn({ tripId }: { tripId: string }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Check-in failed');
+        setError(
+          typeof data.error === "string"
+            ? data.error
+            : "Unable to check in this passenger. Please try again.",
+        );
+        return false;
       }
 
       setCheckedInCount((prev) => prev + 1);
       setSuccessMessage(`${data.passenger?.fullName || 'Passenger'} checked in successfully`);
       setTimeout(() => setSuccessMessage(null), 4000);
       return true;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Check-in failed';
-      setError(message);
+    } catch {
+      setError("Unable to check in this passenger. Check your connection and try again.");
       return false;
     }
   };
@@ -147,6 +165,12 @@ export function StaffCheckIn({ tripId }: { tripId: string }) {
       )}
 
       {/* Operational Feedback */}
+      {tripInfoError ? <Alert variant="error">{tripInfoError}</Alert> : null}
+      {loadingTrip ? (
+        <p className="text-center text-sm text-[#52677D]" role="status">
+          Loading departure details…
+        </p>
+      ) : null}
       {successMessage && (
         <Alert variant="success" className="py-2.5">
           <span className="font-medium">{successMessage}</span>

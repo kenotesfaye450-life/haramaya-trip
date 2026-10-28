@@ -255,7 +255,7 @@ export function QRScanner({ onScanSuccess, paused = false }: QRScannerProps) {
             setErrorMessage("Camera permission did not respond. Check the browser permission prompt and try again.");
           } else {
             setCameraState("error");
-            setErrorMessage(`Camera error: ${err.message || "Failed to initialize camera."}`);
+            setErrorMessage("The camera could not be started. Check browser permissions and try again.");
           }
         } else {
           setCameraState("error");

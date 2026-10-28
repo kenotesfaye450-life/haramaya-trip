@@ -74,14 +74,20 @@ export function formatErrorResponse(error: unknown): {
   }
 
   if (error instanceof Error) {
+    console.error("Unhandled application error.", {
+      errorName:
+        /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(error.name) ? error.name : "Unknown",
+      message: error.message,
+    });
     return {
-      error: error.message,
+      error: 'Something went wrong. Please try again.',
       statusCode: 500,
     };
   }
 
+  console.error("Unhandled application error.", { errorName: "Unknown" });
   return {
-    error: 'An unexpected error occurred',
+    error: 'Something went wrong. Please try again.',
     statusCode: 500,
   };
 }

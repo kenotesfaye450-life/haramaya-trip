@@ -134,7 +134,9 @@ export function TripForm({
       </div>
 
       <div className="flex items-center gap-2 pt-2">
-        <SubmitButton>{tripToEdit ? "Update Trip" : "Schedule Trip"}</SubmitButton>
+        <SubmitButton pendingText="Saving trip…">
+          {tripToEdit ? "Update Trip" : "Schedule Trip"}
+        </SubmitButton>
         <Link href="/admin/trips" className="rounded-lg border border-[#E3E8E5] px-3 py-2 text-xs text-[#66706A] hover:text-[#0A0A0A]">Cancel</Link>
       </div>
     </form>

@@ -41,7 +41,9 @@ export function LocationForm({ locationToEdit }: { locationToEdit?: LocationDraf
           Active and available for trip planning
         </label>
       ) : null}
-      <SubmitButton>{locationToEdit ? "Save Location" : "Add Location"}</SubmitButton>
+      <SubmitButton pendingText="Saving location…">
+        {locationToEdit ? "Save Location" : "Add Location"}
+      </SubmitButton>
     </form>
   );
 }
@@ -81,7 +83,7 @@ export function RouteForm({ locations }: { locations: Array<{ id: string; name: 
       <Field label="Route Display Name">
         <input className={inputClass} name="name" value={routeName} onChange={(e) => { setRouteName(e.target.value); setNameManuallyEdited(true); }} placeholder="e.g. Main Campus to Finfinne" required />
       </Field>
-      <SubmitButton>Create Route</SubmitButton>
+      <SubmitButton pendingText="Creating route…">Create Route</SubmitButton>
     </form>
   );
 }

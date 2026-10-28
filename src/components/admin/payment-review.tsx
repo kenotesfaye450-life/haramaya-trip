@@ -1,5 +1,6 @@
 import { orm } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { PaymentProofPreview } from "./payment-proof-preview";
 import { PaymentApprovalActions } from "./payment-approval-actions";
 
 function latestProof(
@@ -118,17 +119,12 @@ export async function PaymentReview() {
                       </td>
                       <td className="px-4 py-3">
                         {proof ? (
-                          <a
+                          <PaymentProofPreview
                             href={proofHref(proof.storageKey)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 font-semibold text-xs text-brand-green underline hover:text-[#066044] transition-colors"
-                          >
-                            <span>Open receipt file</span>
-                            <span className="text-[10px]">↗</span>
-                          </a>
+                            bookingReference={booking.reference}
+                          />
                         ) : (
-                          <span className="text-[#9CA3AF]">No file</span>
+                          <span className="text-xs text-[#66706A]">No receipt file was attached.</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -174,16 +170,10 @@ export async function PaymentReview() {
                   </div>
 
                   {proof && (
-                    <div>
-                      <a
-                        href={proofHref(proof.storageKey)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-brand-green font-semibold underline"
-                      >
-                        Open submitted receipt file ↗
-                      </a>
-                    </div>
+                    <PaymentProofPreview
+                      href={proofHref(proof.storageKey)}
+                      bookingReference={booking.reference}
+                    />
                   )}
 
                   <div className="pt-1 border-t border-[#E3E8E5]">
